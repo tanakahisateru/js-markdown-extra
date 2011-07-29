@@ -1,7 +1,8 @@
 # js-markdown-extra
 
 ver 1.0  
-based on PHP Markdown Extra 1.01
+based on PHP Markdown Extra 1.01  
+originally developed by [boumankan](http://bmky.net/product/js-markdown-extra/)
 
 ### What's this? ###
 
@@ -36,13 +37,13 @@ I try to port PHP Markdown Extra with incompatible regular expression test.
 Please stand by to kill your browser process. **I prefer to use it
 under dual core CPU.**
 
-### Known issues
+### Known issues ###
 
 * Emphasis or strong syntax may have a bug.
 * Possible to freeze when incomplete syntax.
 * Bracket nesting more than twice for link is unsupported. (is as standard spec)
 
-### Copyright ### {#copyright}
+### Copyright ###
 
 * [Markdown](http://daringfireball.net/projects/markdown/)
 * [PHP Markdown & PHP Markdown Extra](http://www.michelf.com/projects/php-markdown/)

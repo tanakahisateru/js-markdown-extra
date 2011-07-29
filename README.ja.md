@@ -2,6 +2,7 @@
 
 ver 1.0  
 based on PHP Markdown Extra 1.01
+originally developed by [暴満館](http://bmky.net/product/js-markdown-extra/)
 
 ### これは何？ ###
 
