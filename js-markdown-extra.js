@@ -107,12 +107,12 @@ String.prototype._r = function( num ) {
 String.prototype._trim = function( charlist ) {
 	var chars = charlist || " \t\n\r";
 	return this.replace(
-		new RegExp( ).compile( "^[" + chars + "]*|[" + chars + "]*$", "g" ), "" );
+		new RegExp( "^[" + chars + "]*|[" + chars + "]*$", "g" ), "" );
 }
 String.prototype._rtrim = function( charlist ) {
 	var chars = charlist || " \t\n\r";
 	return this.replace(
-		new RegExp( ).compile( "[" + chars + "]*$", "g" ), "" );
+		new RegExp( "[" + chars + "]*$", "g" ), "" );
 }
 
 var md_urls = new Object;
@@ -163,7 +163,7 @@ function Markdown( text ) {
 
 
 var md_flag_StripLinkDefinitions_Z = "9082c5d1b2ef05415b0a1d3e43c2d7a6";
-var md_reg_StripLinkDefinitions = new RegExp( ).compile(
+var md_reg_StripLinkDefinitions = new RegExp(
   '^[ ]{0,' + md_less_than_tab + '}\\[(.+)\\]:'
 + 	'[ \\t]*'
 + 	'\\n?'
@@ -267,7 +267,7 @@ function _HashHTMLBlocks_InMarkdown( text, indent, enclosing_tag, md_span ) {
 		if(
 			matches != null &&
 			(
-			matches[1].match( new RegExp( ).compile(
+			matches[1].match( new RegExp(
 				'^[ ]{' + ( indent + 4 ) + '}.*(\\n[ ]{' + ( indent + 4 ) + '}.*)*' + '(?!\\n)$/'
 				), "gm" ) ||
 			matches[1].match( /^(?:[^`]+|(`+)(?:[^`]+|(?!\1[^`])`)*?\1(?!`))*$/ ) == null
@@ -278,9 +278,9 @@ function _HashHTMLBlocks_InMarkdown( text, indent, enclosing_tag, md_span ) {
 			text = tag.substr( 1 ) + text;
 		}
 		else if(
-			tag.match( new RegExp( ).compile( '^<(?:' + md_block_tags + ')\\b' )
+			tag.match( new RegExp( '^<(?:' + md_block_tags + ')\\b' )
 				|| (
-				   tag.match( new RegExp( ).compile( '^<(?:' + md_context_block_tags + ')\\b' ) )
+				   tag.match( new RegExp( '^<(?:' + md_context_block_tags + ')\\b' ) )
 				&& parsed.match( newline_match_before )
 				&& text.match( newline_match_after )
 					)
@@ -293,7 +293,7 @@ function _HashHTMLBlocks_InMarkdown( text, indent, enclosing_tag, md_span ) {
 			
 			parsed += "\n\n" + block_text + "\n\n";
 		}
-		else if ( tag.match( new RegExp( ).compile( '^<(?:' + md_clean_tags + ')\\b' ) )
+		else if ( tag.match( new RegExp( '^<(?:' + md_clean_tags + ')\\b' ) )
 			|| tag.charAt( 1 ) == '!' || tag.charAt( 1 ) == '?' )
 		{
 			var parsed_array = _HashHTMLBlocks_InHTML( tag + text, _HashHTMLBlocks_HashClean, false );
@@ -302,7 +302,7 @@ function _HashHTMLBlocks_InMarkdown( text, indent, enclosing_tag, md_span ) {
 			parsed += block_text;
 		}
 		else if ( enclosing_tag !== '' &&
-			tag.match( new RegExp( ).compile( '^</?(?:' + enclosing_tag + ')\\b' ) ) )
+			tag.match( new RegExp( '^</?(?:' + enclosing_tag + ')\\b' ) ) )
 		{
 			if ( tag.charAt( 1 ) == '/' ) depth--;
 			else if ( tag.charAt( tag.length - 2 ) != '/' ) depth++;
@@ -323,7 +323,7 @@ function _HashHTMLBlocks_InMarkdown( text, indent, enclosing_tag, md_span ) {
 }
 
 
-var md_reg_HashHTMLBlocks = new RegExp( ).compile(
+var md_reg_HashHTMLBlocks = new RegExp(
   '('
 + 	'</?'
 + 		'[\\w:$]+'
@@ -345,7 +345,7 @@ var md_reg_HashHTMLBlocks = new RegExp( ).compile(
 function _HashHTMLBlocks_InHTML( text, hash_function, md_attr ) {
 	if( text === '' ) return new Array( '', '' );
 	
-	var markdown_attr_match = new RegExp( ).compile(
+	var markdown_attr_match = new RegExp(
 	  '\\s*'
 	+ 'markdown'
 	+ '\\s*=\\s*'
@@ -377,13 +377,13 @@ function _HashHTMLBlocks_InHTML( text, hash_function, md_attr ) {
 		var tag = parts[1];
 		text = parts[2];
 		
-		if( tag.match( new RegExp( ).compile( '^</?(?:' + md_auto_close_tags + ')\\b' ) ) ||
+		if( tag.match( new RegExp( '^</?(?:' + md_auto_close_tags + ')\\b' ) ) ||
 			tag.charAt( 1 ) == '!' || tag.charAt( 1 ) == '?' )
 		{
 			block_text += tag;
 		}
 		else {
-			if( tag.match( new RegExp( ).compile( '^</?' + base_tag_name + '\\b' ) ) ) {
+			if( tag.match( new RegExp( '^</?' + base_tag_name + '\\b' ) ) ) {
 				if( tag.charAt( 1 ) == '/' ) depth--;
 				else if( tag.charAt( tag.length - 2 ) != '/' ) depth++;
 			}
@@ -413,7 +413,7 @@ function _HashHTMLBlocks_InHTML( text, hash_function, md_attr ) {
 				text = parsed_array[1];
 				
 				if ( indent > 0 ) {
-					block_text = block_text.replace( new RegExp( ).compile( '^[ ]{1,' + indent + '}', "gm" ), "" );
+					block_text = block_text.replace( new RegExp( '^[ ]{1,' + indent + '}', "gm" ), "" );
 				}
 				
 				if( !span_mode ) parsed += "\n\n" + block_text + "\n\n";
@@ -508,7 +508,7 @@ function _EscapeSpecialChars( text ) {
 }
 
 
-var md_reg_DoAnchors1 = new RegExp( ).compile(
+var md_reg_DoAnchors1 = new RegExp(
   '('
 + 	'\\['
 + 		'(' + md_nested_brackets + ')'
@@ -520,7 +520,7 @@ var md_reg_DoAnchors1 = new RegExp( ).compile(
 + 	'\\]'
 + ')'
 , "g" );
-var md_reg_DoAnchors2 = new RegExp( ).compile(
+var md_reg_DoAnchors2 = new RegExp(
   '('
 + 	'\\['
 + 		'(' + md_nested_brackets + ')'
@@ -601,7 +601,7 @@ function _DoAnchors_inline_callback( $0, $1, $2, $3, $4, $5, $6 ) {
 
  
 
-var md_reg_DoImages1 = new RegExp( ).compile(
+var md_reg_DoImages1 = new RegExp(
   '('
 + 	'!\\['
 + 		'(' + md_nested_brackets + ')'
@@ -614,7 +614,7 @@ var md_reg_DoImages1 = new RegExp( ).compile(
 + ')'
 , "g" );
 
-var md_reg_DoImages2 = new RegExp( ).compile(
+var md_reg_DoImages2 = new RegExp(
   '('
 + 	'!\\['
 + 		'(' + md_nested_brackets + ')'
@@ -693,7 +693,7 @@ function _DoImages_inline_callback( $0, $1, $2, $3, $4, $5, $6 ) {
 
 var md_reg_DoHeaders1 = /(^.+?)(?:[ ]+\{#([-_:a-zA-Z0-9]+)\})?[ \t]*\n=+[ \t]*\n+/gm;
 var md_reg_DoHeaders2 = /(^.+?)(?:[ ]+\{#([-_:a-zA-Z0-9]+)\})?[ \t]*\n-+[ \t]*\n+/gm;
-var md_reg_DoHeaders3 = new RegExp( ).compile(
+var md_reg_DoHeaders3 = new RegExp(
   '^(#{1,6})'
 + '[ \\t]*'
 + '(.+?)'
@@ -732,7 +732,7 @@ function _DoHeaders( text ) {
 
 
 var md_flag_DoTables = "9882b282ede0f5af55034471410cfc46";
-var md_reg_DoTables1 = new RegExp( ).compile(
+var md_reg_DoTables1 = new RegExp(
   '^'
 + '[ ]{0,' + md_less_than_tab + '}'
 + '[|]'
@@ -747,7 +747,7 @@ var md_reg_DoTables1 = new RegExp( ).compile(
 + ')'
 + '(?=\\n|' + md_flag_DoTables + ')'//Stop at final double newline.
 , "gm" );
-var md_reg_DoTables2 = new RegExp( ).compile(
+var md_reg_DoTables2 = new RegExp(
   '^'
 + '[ ]{0,' + md_less_than_tab + '}'
 + '(\\S.*[|].*)\\n'
@@ -885,7 +885,7 @@ function _DoLists( text ) {
 		text = text.replace( reg, function( $0, $1, $2, $3, $4 ) {
 			$2 = $2.replace( md_flag_DoLists_z, "" );
 			var list = $2;
-			var list_type = $4.match( new RegExp( ).compile( md_marker_ul ) ) != null ? "ul" : "ol";
+			var list_type = $4.match( new RegExp( md_marker_ul ) ) != null ? "ul" : "ol";
 			var marker = ( list_type == "ul" ? md_marker_ul : md_marker_ol );
 			
 			list = list.replace( /\n{2,}/g, "\n\n\n" );
@@ -941,7 +941,7 @@ function _ProcessListItems( list_str, marker_any ) {
  
 
 
-var md_reg_DoDefLists = new RegExp( ).compile(
+var md_reg_DoDefLists = new RegExp(
   '(?:(\\n\\n)|^\\n?)'
 + '('
 + 	'('
@@ -982,7 +982,7 @@ function _DoDefLists( text ) {
 	return text;
 }
 
-var md_reg_ProcessDefListItems1 = new RegExp( ).compile(
+var md_reg_ProcessDefListItems1 = new RegExp(
 		  '(?:\\n\\n+|^\\n?)'
 		+ '('
 		+	'[ ]{0,' + md_less_than_tab + '}'
@@ -991,7 +991,7 @@ var md_reg_ProcessDefListItems1 = new RegExp( ).compile(
 		+ ')'
 		+ '(?=\\n?[ ]{0,3}:[ ])'
 	, "g" );
-var md_reg_ProcessDefListItems2 = new RegExp( ).compile(
+var md_reg_ProcessDefListItems2 = new RegExp(
 		  '\\n(\\n+)?'
 		+ '[ ]{0,' + md_less_than_tab + '}'
 		+ '[:][ ]+'
@@ -1044,7 +1044,7 @@ function _ProcessDefListItems( list_str ) {
 var md_flag_DoCodeBlocks_A = "36efa4d78857300a";
 var md_flag_DoCodeBlocks_Z = "8eae6c6133167566";
 
-var md_reg_DoCodeBlocks = new RegExp( ).compile(
+var md_reg_DoCodeBlocks = new RegExp(
   '(?:\\n\\n|' + md_flag_DoCodeBlocks_A + ')'
 + '('
 	+ '(?:'
@@ -1079,7 +1079,7 @@ function _DoCodeBlocks_callback( $0, $1 ) {
  
 
 
-var md_reg_DoCodeSpans = new RegExp( ).compile(
+var md_reg_DoCodeSpans = new RegExp(
   '(?:(?!\\\\)(^|[\\s\\S])?)'
 + '(`+)'
 + '([\\s\\S]+?(?!`)[\\s\\S])'
@@ -1120,7 +1120,7 @@ function _EncodeCode( str ) {
 
  
 
-var md_reg_DoItalicsAndBold_1 = new RegExp( ).compile(
+var md_reg_DoItalicsAndBold_1 = new RegExp(
 	  '(((?!\\w)([\\s\\S]))?__)'
 	+ '(?=\\S)'
 	+ '(?!__)'
@@ -1134,7 +1134,7 @@ var md_reg_DoItalicsAndBold_1 = new RegExp( ).compile(
 	+ '__'
 	+ '(?!\\w)'
 	, "g" );
-var md_reg_DoItalicsAndBold_2 = new RegExp( ).compile(
+var md_reg_DoItalicsAndBold_2 = new RegExp(
 	  '(((?!\\*\\*)([\\s\\S]{2}))?\\*\\*)'
 	+ '(?=\\S)'
 	+ '(?!\\*\\*)'
@@ -1147,7 +1147,7 @@ var md_reg_DoItalicsAndBold_2 = new RegExp( ).compile(
 	+ '(?=\\S)\\S)'
 	+ '\\*\\*'
 	, "g" );
-var md_reg_DoItalicsAndBold_3 = new RegExp( ).compile(
+var md_reg_DoItalicsAndBold_3 = new RegExp(
 	  '(((?!\\w)[\\s\\S]|^)_)'
 	+ '(?=\\S)'
 	+ '(?!_)'
@@ -1157,7 +1157,7 @@ var md_reg_DoItalicsAndBold_3 = new RegExp( ).compile(
 	+ '_'
 	+ '(?!\\w)'
 	, "g" );
-var md_reg_DoItalicsAndBold_4 = new RegExp( ).compile(
+var md_reg_DoItalicsAndBold_4 = new RegExp(
 	  '(((?!\\*)[\\s\\S]|^)\\*)'
 	+ '(?=\\S)'
 	+ '(?!\\*)'
@@ -1192,7 +1192,7 @@ function _DoItalicsAndBold( text ) {
 
  
 
-var md_reg_DoBlockQuotes = new RegExp( ).compile(
+var md_reg_DoBlockQuotes = new RegExp(
   '('
 +	'('
 +		'^[ \\t]*>[ \\t]?'
@@ -1310,7 +1310,7 @@ function _EncodeBackslashEscapes( text ) {
  
 
 var md_reg_DoAutoLinks_1 = /<((https?|ftp):[^'">\s]+)>/gi;
-var md_reg_DoAutoLinks_2 = new RegExp( ).compile(
+var md_reg_DoAutoLinks_2 = new RegExp(
 	'<'
 	+ '(?:mailto:)?'
 	+ '('
@@ -1390,7 +1390,7 @@ function _UnescapeSpecialChars( text ) {
 
 function _UnhashTags( text ) {
 	for( var key in md_html_hashes ) {
-		text = text.replace( new RegExp( ).compile( key, "g" ), md_html_hashes[key] );
+		text = text.replace( new RegExp( key, "g" ), md_html_hashes[key] );
 	}
 	return text;
 }
@@ -1398,7 +1398,7 @@ function _TokenizeHTML( str ) {
 	var index = 0;
 	var tokens = new Array( );
 	
-	var reg = new RegExp( ).compile(
+	var reg = new RegExp(
 	  '(?:<!(?:--[\\s\\S]*?--\\s*)+>)|'
 	+ '(?:<\\?[\\s\\S]*?\\?>)|'
 	+ '(?:<[/!$]?[-a-zA-Z0-9:]+\\b([^"\'>]+|"[^"]*"|\'[^\']*\')*>)'
@@ -1422,7 +1422,7 @@ function _TokenizeHTML( str ) {
 	return tokens;
 }
 
-var md_reg_Outdent = new RegExp( ).compile( '^(\\t|[ ]{1,' + md_tab_width + '})', "gm" );
+var md_reg_Outdent = new RegExp( '^(\\t|[ ]{1,' + md_tab_width + '})', "gm" );
 function _Outdent( text ) {
 	return text.replace( md_reg_Outdent, "" );
 }

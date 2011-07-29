@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>js-markdown-extra test</title>
+  <script src="js-markdown-extra.js"></script>
+</head>
+<body>
+  <div style="float:left; width:50%;">
+    <h1>Markdown</h1>
+    <pre id="mdtext" style="border:1px solid gray; margin:1em; padding:1em;">
+Syntax Cheatsheet
+========================================
+PHRASE EMPHASIS
+---------------
+*italic*   **bold**  
+_italic_   __bold__
+
+LINKS
+---------------
+Inline:
+An [example](http://url.com/ "Title")
+
+Reference-style labels (titles are optional):
+An [example][id]. Then, anywhere  
+else in the doc, define the link:
+
+  [id]: http://example.com/  "Title"
+
+IMAGES
+---------------
+Inline (titles are optional):
+![alt text](/path/img.jpg "Title")
+
+Reference-style:
+![alt text][id]
+
+  [id]: /url/to/img.jpg "Title"
+
+HEADERS
+---------------
+Setext-style:
+Header 1
+========
+
+Header 2
+--------
+
+atx-style (closing #'s are optional):
+
+# Header 1 #
+
+## Header 2 ##
+
+###### Header 6
+
+LISTS
+---------------
+Ordered, without paragraphs:
+
+1.  Foo
+2.  Bar
+
+Unordered, with paragraphs:
+
+*   A list item.
+
+    With multiple paragraphs.
+
+*   Bar
+
+You can nest them:
+
+*   Abacus
+    * ass
+*   Bastard
+    1.  bitch
+    2.  bupkis
+        * BELITTLER
+    3. burper
+*   Cunning
+
+BLOCKQUOTES
+---------------
+> Email-style angle brackets
+> are used for blockquotes.
+
+> > And, they can be nested.
+
+> #### Headers in blockquotes
+> 
+> * You can quote a list.
+> * Etc.
+
+CODE SPANS
+---------------
+`&lt;code&gt;` spans are delimited
+by backticks.
+
+You can include literal backticks
+like `` `this` ``.
+
+PREFORMATTED CODE BLOCKS
+---------------
+Indent every line of a code block by at least 4 spaces or 1 tab.
+
+This is a normal paragraph.
+
+    This is a preformatted
+    code block.
+
+HORIZONTAL RULES
+---------------
+Three or more dashes or asterisks:
+
+---
+
+* * *
+
+- - - -
+
+MANUAL LINE BREAKS
+---------------
+End a line with two or more spaces:
+
+Roses are red,   
+Violets are blue.
+    </pre>
+  </div>
+
+  <div style="float:right; width:50%;">
+    <h1>Html</h1>
+    <div style="border:1px solid gray; margin:1em; padding:1em;">
+      <script>
+        var mdtextElement = document.getElementById('mdtext');
+        var mdtext = mdtextElement.innerText ? mdtextElement.innerText : mdtextElement.textContent;
+        /*
+        document.write('<pre>' + mdtext
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;') + '</pre>');
+        document.write('<hr/>');
+        document.write('<pre>' + Markdown(mdtext)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;') + '</pre>');
+        document.write('<hr/>');
+        */
+        document.write(Markdown(mdtext));
+      </script>
+    </div>
+  </div>
+  
+  <hr style="clear:both;" />
+</body>
+</html>
