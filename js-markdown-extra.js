@@ -1,100 +1,29 @@
-/*
-js-markdown-extra
------------------
-
-ver 1.0 
-based on PHP Markdown Extra 1.01
-
-* [これは何？](#whats)
-* [デモ](#demo)
-* [ダウンロード](#download)
-* [使い方](#howtouse)
-* [使用上の注意](#notice)
-* [既知の不具合](#bug)
-* [コピーライト](#copyright)
-* [ライセンス](#license)
-* [免責](#agreement)
-* [連絡先](#contact)
-* [更新履歴](#history)
-
-### これは何？ ### {#whats}
-
-js-markdown-extraはPHP Markdown ExtraをJavaScript上で再現しようとしたものです。
-
-正規表現に互換性が無い為に完全に再現できませんでしたが、
-単純なmarkdown文法ならば、問題無く変換してくれます。
-**たぶん**。
-
-### デモ ### {#demo}
-
-実際に試すことができます。
-
-[デモページ](demo.html)
-
-### ダウンロード ### {#download}
-
-[js-markdown-extra.js](js-markdown-extra.js)
-
-### 使い方 ### {#howtouse}
-
-htmlのhead内でスクリプトを読み込ませた後、任意の箇所でMarkdown関数を呼び出してください。
-
-	//例 :
-	var html = Markdown( text );
-
-### 使用上の注意 #### {#notice}
-
-PHP Markdown Extraを互換性の無い正規表現で不完全に再現しようとしているので、
-入力したテキスト次第では正規表現で無限にループしてしまう可能性があります。
-できるだけタスクマネージャ等を起動しておいて、
-いつでも殺せるようにしてください。**デュアルコア超推奨**。
-
-### 既知の不具合 ### {#bug}
-
-* 強調の処理が怪しい。
-* 不完全な構文を処理させようとすると固まる可能性有り。
-* リンクを記述する際、ブラケットの2段以上のネストに未対応。（ほぼ仕様）
-
-### コピーライト ### {#copyright}
-
-* [Markdown](http://daringfireball.net/projects/markdown/)
-* [PHP Markdown & PHP Markdown Extra](http://www.michelf.com/projects/php-markdown/)
-* [js-markdown](http://rephrase.net/box/js-markdown/)
-
-### ライセンス ### {#license}
-
-BSDに基づくオープンソースウェアです。
-
-著作権表示を怠らなければ自由に改変・配布・組み込み等を行うことができます。
-
-### 免責 ### {#agreement}
-
-このスクリプトを利用して発生した障害・損失に関して当方は一切責任を負いません。
-
-### 連絡先 ### {#contact}
-
-<http://bmky.net/>
-
-ページ下部のフォームよりメッセージを送信してください。
-メールアドレス等を併せて記入して頂ければ可能な限り返信します。
-
-もし変換エラーを見つけた場合は、変換前の文章と併せて、
-どのように誤変換されてしまったかを明記して送って頂けると助かります。
-
-ただし、[PHP Markdown Extraのデモページ](http://www.michelf.com/projects/php-markdown/dingus/)で変換できなかったものは、こちらでも変換できないようにするつもりです。
-
-### 更新履歴 ### {#history}
-
-1.1 - 2008-05-31
-: リンクを参照スタイルで記述する場合、
-  title部分を省略するかダブルクオートのみで空になっていると
-  正しく変換できなかったのを修正。（指摘して頂きました）
-
-1.0 - 2006-07-08
-: リリース
-*/
-
- 
+/*!
+ * Copyright (c) 2006 js-markdown-extra developers
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 Array.prototype._pad = function( size, value ) {
 	while( this.length < size )
