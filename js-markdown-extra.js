@@ -1032,7 +1032,7 @@ function _DoCodeSpans_callback( $0, $1, $2, $3 ) {
 	c = c.replace( md_reg_DoCodeSpans_callback, '' );
 	c = _EncodeCode( c );
 	
-	return $1 + "<code>" + c + "</code>";
+	return ($1 ? $1 : '') + "<code>" + c + "</code>";
 }
 
 
