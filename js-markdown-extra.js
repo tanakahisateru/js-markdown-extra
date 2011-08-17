@@ -25,23 +25,29 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-Array.prototype._pad = function( size, value ) {
-	while( this.length < size )
-		this.push( value );
+function Array_pad(target, size, value) {
+    while(target.length < size) {
+        target.push(value);
+    }
 }
-String.prototype._r = function( num ) {
-	for( var i = 0, buf = ""; i < num; i++ ) buf += this;
-	return buf;
+function String_r(target, num) {
+    var buf = "";
+    for(var i = 0; i < num; i++) {
+        buf += target;
+    }
+    return buf;
 }
-String.prototype._trim = function( charlist ) {
-	var chars = charlist || " \t\n\r";
-	return this.replace(
-		new RegExp( "^[" + chars + "]*|[" + chars + "]*$", "g" ), "" );
+function String_trim(target, charlist) {
+    var chars = charlist || " \t\n\r";
+    return target.replace(
+        new RegExp("^[" + chars + "]*|[" + chars + "]*$", "g"), ""
+    );
 }
-String.prototype._rtrim = function( charlist ) {
-	var chars = charlist || " \t\n\r";
-	return this.replace(
-		new RegExp( "[" + chars + "]*$", "g" ), "" );
+function String_rtrim(target, charlist) {
+    var chars = charlist || " \t\n\r";
+    return target.replace(
+        new RegExp( "[" + chars + "]*$", "g" ), ""
+    );
 }
 
 var md_urls = new Object;
@@ -65,9 +71,10 @@ var md_auto_close_tags = 'hr|img';
 /*
 var md_nested_brackets_depth = 6;
 var md_nested_brackets =
-	  '(?:[^\\[\\]]+|\\['._r( md_nested_brackets_depth )
-	+ '\\])+'._r( md_nested_brackets_depth )
-	;
+      String_r(String_r(
+          '(?:[^\\[\\]]+|\\[',
+          md_nested_brackets_depth
+      ) + '\\])+', md_nested_brackets_depth );
 */
 var md_nested_brackets = '.*?(?:\\[.*?\\])?.*?';
 
@@ -742,12 +749,12 @@ function _DoTable_callback( $0, $1, $2, $3 ) {
 	text += "<tr>\n";
 	
 	for( var i = 0, len = headers.length; i < len; i++ )
-		text += "  <th" + attr[i] + ">" + _RunSpanGamut( headers[i]._trim(  ) ) + "</th>\n";
+		text += "  <th" + attr[i] + ">" + _RunSpanGamut(String_trim(headers[i])) + "</th>\n";
 	
 	text += "</tr>\n";
 	text += "</thead>\n";
 	
-	var rows = content._trim( "\n" ).split( /\n/ );
+	var rows = String_trim(content, "\n").split(/\n/);
 	
 	text += "<tbody>\n";
 	
@@ -756,11 +763,11 @@ function _DoTable_callback( $0, $1, $2, $3 ) {
 		
 		var row = _DoCodeSpans( row );
 		var row_cells = row.split( /[ ]*[|][ ]*/, col_count );
-		row_cells._pad( col_count, "" );
+		Array_pad(row_cells, col_count, "");
 		
 		text += "<tr>\n";
 		for( var x = 0, len2 = row_cells.length; x < len2; x++ )
-			text += "  <td" + attr[x] + ">" + _RunSpanGamut( row_cells[x]._trim( ) ) + "</td>\n";
+			text += "  <td" + attr[x] + ">" + _RunSpanGamut(String_trim(row_cells[x])) + "</td>\n";
 		
 		text += "</tr>\n";
 	}
@@ -902,7 +909,7 @@ function _DoDefLists( text ) {
 	var reg = md_reg_DoDefLists;
 	
 	text = text.replace( reg, function( $0, $1, $2, $3, $4, $5 ) {
-		var result = _ProcessDefListItems( $2 )._trim( );
+		var result = String_trim(_ProcessDefListItems($2));
 		result = "<dl>\n" + result + "\n</dl>";
 		if( !$1 ) $1 = "";
 		return $1 + _HashBlock( result ) + "\n\n";
@@ -937,11 +944,11 @@ function _ProcessDefListItems( list_str ) {
 	
 	var reg = md_reg_ProcessDefListItems1;
 	list_str = list_str.replace( reg, function( $0, $1 ) {
-		var terms = $1._trim( ).split( /\n/ );
+		var terms = String_trim($1).split( /\n/ );
 		var text = '';
 		for( var i = 0, len = terms.length; i < len; i++ ) {
 			var term = terms[i];
-			term = _RunSpanGamut( term._trim( ) );
+			term = _RunSpanGamut( String_trim(term) );
 			text += "\n<dt>" + term + "</dt>";
 		}
 		return text + "\n";
@@ -957,7 +964,7 @@ function _ProcessDefListItems( list_str ) {
 			def = "\n" + def + "\n";
 		}
 		else {
-			def = def._rtrim( );
+			def = String_rtrim(def);
 			def = _RunSpanGamut( _Outdent( def ) );
 		}
 		
@@ -1170,7 +1177,7 @@ function _FormParagraphs( text ) {
 	var grafs = text.split( /\n{2,}/ );
 	
 	for( var i = 0, len = grafs.length; i < len; i++ ) {
-		var value = _RunSpanGamut( grafs[i] )._trim( );
+		var value = String_trim(_RunSpanGamut(grafs[i]));
 		
 		var clean_key = value;
 		var block_key = value.substr( 0, 32 );
@@ -1359,7 +1366,7 @@ function _Outdent( text ) {
 function _Detab( text ) {
 	text = text.replace( /(.*?)\t/g,
 		function( match, substr ) {
-			return substr += " "._r( ( md_tab_width - substr.length % md_tab_width ) );
+			return substr += String_r(" ", (md_tab_width - substr.length % md_tab_width));
 		});
 	return text;
 }
