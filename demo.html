@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="js-markdown-extra : PHP-Markdown-extra compatible Javascript markdown syntax parser" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>js-markdown-extra</title>
+
+    <script src="https://raw.github.com/tanakahisateru/js-markdown-extra/master/js-markdown-extra.js"></script>
+    <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+
+    <script>
+    $(function() {
+        function parse_md() {
+            var result = Markdown($('#mdtext').val());
+            $('#result').html(result);
+            $('#result-src').text(result);
+        }
+        $('#mdtext').keyup(parse_md);
+        parse_md();
+    });
+    </script>
+
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/tanakahisateru/js-markdown-extra">Fork Me on GitHub</a>
+
+          <h1 id="project_title">js-markdown-extra</h1>
+
+          <nav>
+              <a href="index.html">Back to Home</a>
+          </nav>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+
+  <div style="float:left; width:50%;">
+    <h1>Markdown</h1>
+    <textarea id="mdtext" style="width:90%; height:430px; border:1px solid gray;">
+Syntax Cheatsheet
+========================================
+PHRASE EMPHASIS
+---------------
+*italic*   **bold**  
+_italic_   __bold__
+
+LINKS
+---------------
+Inline:
+An [example](http://url.com/ "Title")
+
+Reference-style labels (titles are optional):
+An [example][id]. Then, anywhere  
+else in the doc, define the link:
+
+  [id]: http://example.com/  "Title"
+
+IMAGES
+---------------
+Inline (titles are optional):
+![alt text](/path/img.jpg "Title")
+
+Reference-style:
+![alt text][id]
+
+  [id]: /url/to/img.jpg "Title"
+
+HEADERS
+---------------
+Setext-style:
+Header 1
+========
+
+Header 2
+--------
+
+atx-style (closing #'s are optional):
+
+# Header 1 #
+
+## Header 2 ##
+
+###### Header 6
+
+LISTS
+---------------
+Ordered, without paragraphs:
+
+1.  Foo
+2.  Bar
+
+Unordered, with paragraphs:
+
+*   A list item.
+
+    With multiple paragraphs.
+
+*   Bar
+
+You can nest them:
+
+*   Abacus
+    * ass
+*   Bastard
+    1.  bitch
+    2.  bupkis
+        * BELITTLER
+    3. burper
+*   Cunning
+
+BLOCKQUOTES
+---------------
+> Email-style angle brackets
+> are used for blockquotes.
+
+> > And, they can be nested.
+
+> #### Headers in blockquotes
+> 
+> * You can quote a list.
+> * Etc.
+
+CODE SPANS
+---------------
+`&lt;code&gt;` spans are delimited
+by backticks.
+
+You can include literal backticks
+like `` `this` ``.
+
+PREFORMATTED CODE BLOCKS
+---------------
+Indent every line of a code block by at least 4 spaces or 1 tab.
+
+This is a normal paragraph.
+
+    This is a preformatted
+    code block.
+
+HORIZONTAL RULES
+---------------
+Three or more dashes or asterisks:
+
+---
+
+* * *
+
+- - - -
+
+MANUAL LINE BREAKS
+---------------
+End a line with two or more spaces:
+
+Roses are red,   
+Violets are blue.
+
+- - - - - - - - - - - - - - - - - - - -
+
+Table
+-----------------
+
+|a |b |c
+|--|--|--
+|1 |2 |3
+
+or
+
+a |b |c
+--|--|--
+1 |2 |3
+
+alignment
+
+  rigt|left  | center
+-----:|:-----|------
+ 0001 | 2    | 003
+   4  | 0005 |  6
+
+Definition list
+-----------------
+
+term
+ : definithion
+
+term
+ : definithion
+ : is here
+
+term
+ : definithion
+
+ : can have multi paragraph
+
+Auto link
+-----------------
+
+&lt;http://foo.com/>  
+&lt;mailto:foo@bar.com>
+
+Encode
+-----------------
+
+&amp; &lt; "aaa"
+
+Inline HTML
+-----------------
+
+&lt;p>
+HTML is represented as is.&lt;br>
+&lt;del>The &lt;strong>quick brown fox&lt;/strong> jumps over the lazy dog.&lt;/del>
+&lt;/p>
+
+&lt;div>
+Regularly Markdown syntax ignored in HTML.&lt;br/>
+[Google](http://www.google.co.jp/)
+&lt;/div>
+
+&lt;div markdown="1">
+Markdow enabled inside HTML when marked by markdown="1" attribute.  
+[Google](http://www.google.co.jp/)
+&lt;/div>
+
+    </textarea>
+  </div>
+
+  <div style="float:right; width:50%;">
+    <h1>Html</h1>
+    <div id="result" style="height:200px; overflow:scroll; border:1px solid gray; padding:0.5em;">
+    </div>
+    <pre id="result-src" style="width:auto; height:200px; font-size:10pt; overflow:scroll; border:1px solid gray; padding:0.5em;">
+    </pre>
+  </div>
+  
+  <div style="clear:both;">Type your md-text into the textarea above.</div>
+
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">js-markdown-extra maintained by <a href="https://github.com/tanakahisateru">tanakahisateru</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+</body>
+</html>
