@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="js-markdown-extra : PHP-Markdown-extra compatible Javascript markdown syntax parser" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>js-markdown-extra</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/tanakahisateru/js-markdown-extra">Fork Me on GitHub</a>
+
+          <h1 id="project_title">js-markdown-extra</h1>
+          <h2 id="project_tagline">PHP-Markdown-extra compatible Javascript markdown syntax parser</h2>
+
+          <section id="downloads">
+            <a class="zip_download_link" href="https://github.com/tanakahisateru/js-markdown-extra/zipball/master">Download this project as a .zip file</a>
+            <a class="tar_download_link" href="https://github.com/tanakahisateru/js-markdown-extra/tarball/master">Download this project as a tar.gz file</a>
+          </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>ver 1.0<br>
+based on PHP Markdown Extra 1.01<br>
+originally developed by <a href="http://bmky.net/product/js-markdown-extra/">boumankan</a></p>
+
+<h3>What's this?</h3>
+
+<p>js-markdown-extra is a experimental JapaScript port of PHP Markdown Extra.</p>
+
+<p><a href="http://www.michelf.com/projects/php-markdown/dingus/">PHP Markdown Extra demo</a></p>
+
+<p>I couldn't retain complete comaptibility because of difference between PHP's
+regular expression and JavaScript's one, but it can convert most of simple
+markdown text.
+<strong>perhaps</strong>.</p>
+
+<h3>Demo</h3>
+
+<p>You can try in your hand.</p>
+
+<p><a href="http://bmky.net/product/files/js-markdown-extra/demo.html">Demo page</a></p>
+
+<h3>How to use</h3>
+
+<p>Load this script in HTML and call <code>Markdown</code> function.</p>
+
+<div class="highlight">
+<pre>    <span class="c1">//example :</span>
+    <span class="kd">var</span> <span class="nx">html</span> <span class="o">=</span> <span class="nx">Markdown</span><span class="p">(</span> <span class="nx">text</span> <span class="p">);</span>
+</pre>
+</div>
+
+
+<h3>Notice</h3>
+
+<p>It has possibility of entering infinite loop by some user input because
+I try to port PHP Markdown Extra with incompatible regular expression test.
+Please stand by to kill your browser process. <strong>I prefer to use it
+under dual core CPU.</strong></p>
+
+<h3>Known issues</h3>
+
+<ul>
+<li>Emphasis or strong syntax may have a bug.</li>
+<li>Possible to freeze when incomplete syntax.</li>
+<li>Bracket nesting more than twice for link is unsupported. (is as standard spec)</li>
+</ul><h3>Copyright</h3>
+
+<ul>
+<li><a href="http://daringfireball.net/projects/markdown/">Markdown</a></li>
+<li><a href="http://www.michelf.com/projects/php-markdown/">PHP Markdown &amp; PHP Markdown Extra</a></li>
+<li><a href="http://rephrase.net/box/js-markdown/">js-markdown</a></li>
+</ul><h3>License</h3>
+
+<p>This software is based on BSD license.</p>
+
+<p>Free for modification, redistribution and embedding if copyright included.</p>
+
+<h3>Agreement</h3>
+
+<p>Shall we not be liable for any damages caused by this software.</p>
+
+<h3>History</h3>
+
+<h4>1.1 - 2008-05-31</h4>
+
+<p>BUGFIX: Reference syntax with empty title. (Thanks to reporter)</p>
+
+<h4>1.0 - 2006-07-08</h4>
+
+<p>1st release.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">js-markdown-extra maintained by <a href="https://github.com/tanakahisateru">tanakahisateru</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
