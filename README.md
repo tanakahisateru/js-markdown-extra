@@ -19,7 +19,7 @@ markdown text.
 
 You can try in your hand.
 
-[Demo page](http://bmky.net/product/files/js-markdown-extra/demo.html)
+[Demo page](http://tanakahisateru.github.com/js-markdown-extra/demo.html)
 
 ### How to use ###
 

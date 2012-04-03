@@ -18,7 +18,7 @@ js-markdown-extraはPHP Markdown ExtraをJavaScript上で再現しようとし�
 
 実際に試すことができます。
 
-[デモページ](http://bmky.net/product/files/js-markdown-extra/demo.html)
+[デモページ](http://tanakahisateru.github.com/js-markdown-extra/demo.html)
 
 ### 使い方 ###
 
