@@ -13,6 +13,12 @@
     <script src="https://raw.github.com/tanakahisateru/js-markdown-extra/master/js-markdown-extra.js"></script>
     <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 
+    <style>
+    #mdtext { width:90%; height:430px; border:1px solid gray; }
+    #result { height:200px; overflow:scroll; border:1px solid gray; padding:0.5em; }
+    #result-src { width:auto; height:200px; font-size:10pt; overflow:scroll; border:1px solid gray; padding:0.5em; }
+    #result img { width: auto; height:auto; }
+    </style>
     <script>
     $(function() {
         function parse_md() {
@@ -20,7 +26,20 @@
             $('#result').html(result);
             $('#result-src').text(result);
         }
-        $('#mdtext').keyup(parse_md);
+        var initial = $('#mdtext').val();
+        var prev = initial;
+        $('#mdtext').keyup(function() {
+            var mdtext = $('#mdtext').val();
+            if(prev != mdtext) {
+                parse_md();
+                prev = mdtext;
+            }
+        });
+        $('#reset').click(function() {
+            $('#mdtext').val(initial);
+            prev = initial;
+            parse_md();
+        });
         parse_md();
     });
     </script>
@@ -48,7 +67,7 @@
 
   <div style="float:left; width:50%;">
     <h1>Markdown</h1>
-    <textarea id="mdtext" style="width:90%; height:430px; border:1px solid gray;">
+    <textarea id="mdtext">
 Syntax Cheatsheet
 ========================================
 PHRASE EMPHASIS
@@ -70,12 +89,12 @@ else in the doc, define the link:
 IMAGES
 ---------------
 Inline (titles are optional):
-![alt text](/path/img.jpg "Title")
+![alt text](images/blacktocat.png "Title")
 
 Reference-style:
 ![alt text][id]
 
-  [id]: /url/to/img.jpg "Title"
+  [id]: images/blacktocat.png "Title"
 
 HEADERS
 ---------------
@@ -233,13 +252,14 @@ Markdow enabled inside HTML when marked by markdown="1" attribute.
 &lt;/div>
 
     </textarea>
+    <button id="reset">Reset</button>
   </div>
 
   <div style="float:right; width:50%;">
     <h1>Html</h1>
-    <div id="result" style="height:200px; overflow:scroll; border:1px solid gray; padding:0.5em;">
+    <div id="result">
     </div>
-    <pre id="result-src" style="width:auto; height:200px; font-size:10pt; overflow:scroll; border:1px solid gray; padding:0.5em;">
+    <pre id="result-src">
     </pre>
   </div>
   
