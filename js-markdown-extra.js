@@ -63,6 +63,12 @@ function Markdown(text) {
     var md_html_blocks = new Object;
     var md_html_hashes = new Object;
     var md_list_level = 0;
+
+    var md_footnotes = new Object;
+    var md_footnotes_ordered = [];
+    var md_footnote_counter = 1;
+
+    var md_in_anchor = false;
     
     var md_empty_element_suffix = " />";
     var md_tab_width = 4;
@@ -118,6 +124,105 @@ function Markdown(text) {
         return text.replace( md_flag_StripLinkDefinitions_Z, "" );
     }
     
+    // Footnotes
+
+    function _StripFootnotes(text) {
+      //
+      // Strips link definitions from text, stores the URLs and titles in
+      // hash references.
+      less_than_tab = md_tab_width - 1;
+
+      // Link defs are in the form: [^id]: url "optional title"
+      text = text.replace(new RegExp('^[ ]{0,'+less_than_tab+'}\\[\\^(.+?)\\][ ]?:[ ]*\\n?((?:.+|\\n(?!\\[\\^.+?\\]:\\s)(?!\\n+[ ]{0,3}\\S))*)', 'mg'),
+                          function($0, $1, $2) {
+                            md_footnotes[$1] = _Outdent($2);
+                            return '';
+                          });
+
+                          return text;
+    }
+
+    function _DoFootnotes(text) {
+      //
+      // Replace footnote references in $text [^id] with a special text-token 
+      // which will be replaced by the actual footnote marker in appendFootnotes.
+      if (!md_in_anchor) {
+        text = text.replace(/\[\^(.+?)\]/g, function($0, $1) { return "F\x1Afn:" + $1 + "\x1A:" });
+      }
+      return text;
+    }
+
+    function _AppendFootnotes(text) {
+      //
+      // Append footnote list to text.
+      //
+      text = text.replace(/F\x1Afn:(.*?)\x1A:/g, _appendFootnotes_callback);
+
+      if (md_footnotes_ordered.length != 0) {
+        text += "\n\n";
+        text += "<div class=\"footnotes\">\n";
+        text += "<hr" + md_empty_element_suffix + "\n";
+        text += "<ol>\n\n";
+
+        attr = " rev=\"footnote\"";
+        num = 0;
+
+        while (md_footnotes_ordered.length != 0) {
+          var thing = md_footnotes_ordered.shift();
+          var note_id = thing[0];
+          var footnote = thing[1];
+
+          footnote += "\n"; // Need to append newline before parsing.
+          footnote = _RunBlockGamut(footnote + "\n");				
+          footnote = footnote.replace(/F\x1Afn:(.*?)\x1A:/g, _appendFootnotes_callback);
+
+          num += 1;
+          attr = attr.replace("%%", num);
+          note_id = _EncodeAttribute(note_id);
+
+          // Add backlink to last paragraph; create new paragraph if needed.
+          backlink = "<a href=\"#fnref:" + note_id + "\"" + attr + ">&#8617;</a>";
+          if (footnote.match(/<\/p>$/)) {
+            footnote = footnote.replace(/<\/p>$/, "") + "&#160;" + backlink + "</p>";
+          } else {
+            footnote += "\n\n<p>" + backlink + "</p>";
+          }
+
+          text += "<li id=\"fn:" + note_id + "\">\n";
+          text += footnote + "\n";
+          text += "</li>\n\n";
+        }
+
+        text += "</ol>\n";
+        text += "</div>";
+      }
+      return text;
+    }
+
+    function _appendFootnotes_callback($0, $1) {
+      var node_id = $1;
+
+      // Create footnote marker only if it has a corresponding footnote *and*
+      // the footnote hasn't been used by another marker.
+      if (md_footnotes[node_id]) {
+        // Transfer footnote content to the ordered list.
+        md_footnotes_ordered.push([node_id, md_footnotes[node_id]]);
+        delete md_footnotes[node_id];
+
+        var num = md_footnote_counter++;
+        var attr = " rel=\"footnote\"";
+
+        attr = attr.replace("%%", num);
+        node_id = _EncodeAttribute(node_id);
+
+        return "<sup id=\"fnref:" + node_id + "\">" +
+          "<a href=\"#fn:" + node_id + "\"" + attr + ">" + num + "</a>" +
+          "</sup>";
+      }
+
+      return "[^" + $1 + "]";
+    }
+
     
     function _HashHTMLBlocks( text ) {
         text = _HashHTMLBlocks_InMarkdown( text )[0];
@@ -400,6 +505,7 @@ function Markdown(text) {
     function _RunSpanGamut( text ) {
         text = _DoCodeSpans( text );
         text = _EscapeSpecialChars( text );
+        text = _DoFootnotes( text );
         text = _DoImages( text );
         text = _DoAnchors( text );
         text = _DoAutoLinks( text );
@@ -461,12 +567,16 @@ function Markdown(text) {
     , "g" );
     
     function _DoAnchors( text ) {
+        if (md_in_anchor) return text;
+        md_in_anchor = true;
+
         var reg = md_reg_DoAnchors1;
         text = text.replace( reg, _DoAnchors_reference_callback );
     
         var reg = md_reg_DoAnchors2;
         text = text.replace( reg, _DoAnchors_inline_callback );
     
+        md_in_anchor = false;
         return text;
     }
     function _DoAnchors_reference_callback( $0, $1, $2, $3 ) {
@@ -1181,6 +1291,7 @@ function Markdown(text) {
         
         return text;
     }
+
     
     function _EncodeAmpsAndAngles( text ) {
     
@@ -1190,7 +1301,14 @@ function Markdown(text) {
         ;
     }
     
-     
+    function _EncodeAttribute(text) {
+      //
+      // Encode text for a double-quoted HTML attribute. This function
+      // is *not* suitable for attributes enclosed in single quotes.
+      text = _EncodeAmpsAndAngles(text);
+      text = text.replace('"', '&quot;');
+      return text;
+    }
     
      
     
@@ -1409,14 +1527,23 @@ function Markdown(text) {
         md_titles = new Object;
         md_html_blocks = new Object;
         md_html_hashes = new Object;
+
+        md_footnotes = new Object;
+        md_footnotes_ordered = [];
+        md_footnote_counter = 1;
+
+        md_in_anchor = false;
+
         
         text = text.replace( /\r\n|\r/g, "\n" );
         text += "\n\n";
         text = _Detab( text );
         text = _HashHTMLBlocks( text );
         text = text.replace( /^[ \t]+$/gm, "" );
+        text = _StripFootnotes( text );
         text = _StripLinkDefinitions( text );
         text = _RunBlockGamut( text, false );
+        text = _AppendFootnotes( text );
         text = _UnescapeSpecialChars( text );
         
         return text + "\n";
