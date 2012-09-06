@@ -267,6 +267,28 @@ Markdown_Parser.prototype.prepareItalicsAndBold = function() {
 };
 
 /**
+ * [porting note]
+ * JavaScript's RegExp doesn't have escape code \A and \Z.
+ * So multiline pattern can't match start/end of text. Instead
+ * wrap whole of text with STX(02) and ETX(03).
+ */
+Markdown_Parser.prototype.__wrapSTXETX__ = function(text) {
+    if(text.charAt(0) != '\x02') { text = '\x02' + text; }
+    if(text.charAt(text.length - 1) != '\x03') { text = text + '\x03'; }
+    return text;
+};
+
+/**
+ * [porting note]
+ * Strip STX(02) and ETX(03).
+ */
+Markdown_Parser.prototype.__unwrapSTXETX__ = function(text) {
+    if(text.charAt(0) == '\x02') { text = text.substr(1); }
+    if(text.charAt(text.length - 1) == '\x03') { text = text.substr(0, text.length - 1); }
+    return text;
+};
+
+/**
  * Called before the transformation process starts to setup parser 
  * states.
  */
@@ -408,7 +430,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
         '(?:' +
             '(?:\\n\\n)' +		// Starting after a blank line
             '|' +				// or
-            '\\A\\n?' +			// the beginning of the doc
+            '(?:\\x02)\\n?' +		// the beginning of the doc
         ')' +
         '(' +						// save in $1
 
@@ -420,7 +442,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
             content +		// content, support nesting
             '</\\2>' +				// the matching end tag
             '[ ]*' +				 // trailing spaces/tabs
-            '(?=\\n+|\\Z)' +	// followed by a newline or end of document
+            '(?=\\n+|\\n*\\x03)' +	// followed by a newline or end of document
 
         '|' + // Special version for tags of group a.
 
@@ -430,7 +452,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
             content2 + 		// content, support nesting
             '</\\3>' +				// the matching end tag
             '[ ]*' +				// trailing spaces/tabs
-            '(?=\\n+|\\Z)' +	// followed by a newline or end of document
+            '(?=\\n+|\\n*\\x03)' +	// followed by a newline or end of document
 
         '|' + // Special case just for <hr />. It was easier to make a special 
               // case than to make the other regex more complicated.
@@ -440,7 +462,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
             attr+			// attributes
             '/?>' +					// the matching end tag
             '[ ]*' +
-            '(?=\\n{2,}|\\Z)' +		// followed by a blank line or end of document
+            '(?=\\n{2,}|\\n*\\x03)' +		// followed by a blank line or end of document
 
         '|' + // Special case for standalone HTML comments:
 
@@ -449,7 +471,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
                 '<!-- .*? -->' +
             ')' +
             '[ ]*' +
-            '(?=\\n{2,}|\\Z)' +		// followed by a blank line or end of document
+            '(?=\\n{2,}|\\n*\\x03)' +		// followed by a blank line or end of document
 
         '|' + // PHP and ASP-style processor instructions (<? and <%)
 
@@ -460,18 +482,21 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
                 '\\2>' +
             ')' +
             '[ ]*' +
-            '(?=\\n{2,}|\\Z)' +		// followed by a blank line or end of document
+            '(?=\\n{2,}|\\n*\\x03)' +		// followed by a blank line or end of document
 
         ')' +
     ')', 'mig');
     // FIXME: JS doesnt have enough escape sequence \A nor \Z.
 
     var self = this;
-    return text.replace(all, function(match, text) {
+    text = this.__wrapSTXETX__(text);
+    text = text.replace(all, function(match, text) {
         console.log(match);
         var key  = self.hashBlock(text);
         return "\n\n" + key + "\n\n";
     });
+    text = this.__unwrapSTXETX__(text);
+    return text;
 };
 
 /**
@@ -518,7 +543,8 @@ Markdown_Parser.prototype.stripLinkDefinitions = function(text) {
     var less_than_tab = this.tab_width - 1;
     var self = this;
     // Link defs are in the form: ^[id]: url "optional title"
-    return text.replace(new RegExp(
+    text = this.__wrapSTXETX__(text);
+    text = text.replace(new RegExp(
         '^[ ]{0,' + less_than_tab + '}\\[(.+)\\][ ]?:' + // id = $1
             '[ ]*'+
                 '\\n?' + // maybe *one* newline
@@ -538,7 +564,7 @@ Markdown_Parser.prototype.stripLinkDefinitions = function(text) {
                 '["\\)]' +
                 '[ ]*' +
             ')?' +	// title is optional
-            '(?:\\n+|\\Z)',
+            '(?:\\n+|\\n*(?=\\x03))',
         'm'), function(match, id, url2, url3, title) {
             console.log(match);
             var link_id = id.toLowerCase();
@@ -548,6 +574,8 @@ Markdown_Parser.prototype.stripLinkDefinitions = function(text) {
             return ''; // String that will replace the block
         }
     );
+    text = this.__unwrapSTXETX__(text);
+    return text;
 }
 
 /**
@@ -666,8 +694,17 @@ Markdown_Parser.prototype.runSpanGamut = function(text) {
  * $text - string to process with html <p> tags
  */
 Markdown_Parser.prototype.formParagraphs = function(text) {
+
     // Strip leading and trailing lines:
-    text = text.replace(/\A\n+|\n+\z/, "");
+    text = this.__wrapSTXETX__(text);
+    text = text.replace(/(?:\x02)\n+|\n+(?:\x03)/g, "");
+    text = this.__unwrapSTXETX__(text);
+    // [porting note]
+    // below may be faster than js regexp.
+    //for(var s = 0; s < text.length && text.charAt(s) == "\n"; s++) { }
+    //text = text.substr(s);
+    //for(var e = text.length; e > 0 && text.charAt(e - 1) == "\n"; e--) { }
+    //text = text.substr(0, e);
 
     var grafs = text.split(/\n{2,}/);
     //preg_split('/\n{2,}/', $text, -1, PREG_SPLIT_NO_EMPTY);
@@ -677,7 +714,11 @@ Markdown_Parser.prototype.formParagraphs = function(text) {
     //
     for(var i = 0; i < grafs.length; i++) {
         var value = grafs[i];
-        if (!value.match(/^B\x1A[0-9]+B$/)) {
+        if(value == "") {
+            // [porting note]
+            // This case is replacement for PREG_SPLIT_NO_EMPTY.
+        }
+        else if (!value.match(/^B\x1A[0-9]+B$/)) {
             // Is a paragraph.
             value = this.runSpanGamut(value);
             value = value.replace(/^([ ]*)/, "<p>");
