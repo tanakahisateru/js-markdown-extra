@@ -517,8 +517,6 @@ Markdown_Parser.prototype.hashPart = function(text, boundary) {
     // multiple times at the end.
     text = this.unhash(text);
 
-    console.log(text);
-
     // Then hash the block.
     if(arguments.callee.i === undefined) {
         arguments.callee.i = 0;
