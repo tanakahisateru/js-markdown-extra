@@ -119,18 +119,18 @@ function Markdown_Parser() {
     // Document transformations
     this.document_gamut = [
         // Strip link definitions, store in hashes.
-        [this.stripLinkDefinitions, 20],
-        [this.runBasicBlockGamut,   30]
+        ['stripLinkDefinitions', 20],
+        ['runBasicBlockGamut',   30]
     ];
 
     // These are all the transformations that form block-level
     /// tags like paragraphs, headers, and list items.
     this.block_gamut = [
-        [this.doHeaders,         10],
-        [this.doHorizontalRules, 20],
-        [this.doLists,           40],
-        [this.doCodeBlocks,      50],
-        [this.doBlockQuotes,     60],
+        ['doHeaders',         10],
+        ['doHorizontalRules', 20],
+        ['doLists',           40],
+        ['doCodeBlocks',      50],
+        ['doBlockQuotes',     60],
     ];
 
     // These are all the transformations that occur *within* block-level
@@ -138,18 +138,18 @@ function Markdown_Parser() {
     this.span_gamut = [
         // Process character escapes, code spans, and inline HTML
         // in one shot.
-        [this.parseSpan,          -30],
+        ['parseSpan',          -30],
         // Process anchor and image tags. Images must come first,
         // because ![foo][f] looks like an anchor.
-        [this.doImages,            10],
-        [this.doAnchors,           20],
+        ['doImages',            10],
+        ['doAnchors',           20],
         // Make links out of things like `<http://example.com/>`
         // Must come after doAnchors, because you can use < and >
         // delimiters in inline links like [this](<url>).
-        [this.doAutoLinks,         30],
-        [this.encodeAmpsAndAngles, 40],
-        [this.doItalicsAndBold,    50],
-        [this.doHardBreaks,        60]
+        ['doAutoLinks',         30],
+        ['encodeAmpsAndAngles', 40],
+        ['doItalicsAndBold',    50],
+        ['doHardBreaks',        60]
     ];
 
     /*
@@ -342,9 +342,12 @@ Markdown_Parser.prototype.transform = function(text) {
 
     // Run document gamut methods.
     for(var i = 0; i < this.document_gamut.length; i++) {
-        var method = this.document_gamut[i][0];
+        var method = this[this.document_gamut[i][0]];
         if(method) {
             text = method.call(this, text);
+        }
+        else {
+            console.log(this.document_gamut[i][0] + ' not implemented');
         }
     }
 
@@ -596,9 +599,12 @@ Markdown_Parser.prototype.runBlockGamut = function(text) {
  */
 Markdown_Parser.prototype.runBasicBlockGamut = function(text) {
     for(var i = 0; i < this.block_gamut.length; i++) {
-        var method = this.block_gamut[i][0];
+        var method = this[this.block_gamut[i][0]];
         if(method) {
             text = method.call(this, text);
+        }
+        else {
+            console.log(this.block_gamut[i][0] + ' not implemented');
         }
     }
     // Finally form paragraph and restore hashed blocks.
@@ -677,9 +683,12 @@ Markdown_Parser.prototype.doHorizontalRules = function(text) {
  */
 Markdown_Parser.prototype.runSpanGamut = function(text) {
     for(var i = 0; i < this.span_gamut.length; i++) {
-        var method = this.span_gamut[i][0];
+        var method = this[this.span_gamut[i][0]];
         if(method) {
             text = method.call(this, text);
+        }
+        else {
+            console.log(this.span_gamut[i][0] + ' not implemented');
         }
     }
     return text;
@@ -892,17 +901,17 @@ MarkdownExtra_Parser.prototype.init = function() {
 
     // Insert extra document, block, and span transformations. 
     // Parent constructor will do the sorting.
-    this.document_gamut.push([this.doFencedCodeBlocks,  5]);
-    this.document_gamut.push([this.stripFootnotes,     15]);
-    this.document_gamut.push([this.stripAbbreviations, 25]);
-    this.document_gamut.push([this.appendFootnotes,    50]);
+    this.document_gamut.push(['doFencedCodeBlocks',  5]);
+    this.document_gamut.push(['stripFootnotes',     15]);
+    this.document_gamut.push(['stripAbbreviations', 25]);
+    this.document_gamut.push(['appendFootnotes',    50]);
 
-    this.block_gamut.push([this.doFencedCodeBlocks,  5]);
-    this.block_gamut.push([this.doTables,           15]);
-    this.block_gamut.push([this.doDefLists,         45]);
+    this.block_gamut.push(['doFencedCodeBlocks',  5]);
+    this.block_gamut.push(['doTables',           15]);
+    this.block_gamut.push(['doDefLists',         45]);
 
-    this.span_gamut.push([this.doFootnotes,      5]);
-    this.span_gamut.push([this.doAbbreviations, 70]);
+    this.span_gamut.push(['doFootnotes',      5]);
+    this.span_gamut.push(['doAbbreviations', 70]);
 
     this.constructor.prototype.init.call(this);
 };
