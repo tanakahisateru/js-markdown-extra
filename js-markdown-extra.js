@@ -106,6 +106,9 @@ function _rtrim(target, charlist) {
     );
 }
 
+function _htmlspecialchars_ENT_NOQUOTES(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 /**
  * Constructor function. Initialize appropriate member variables.
@@ -779,6 +782,90 @@ Markdown_Parser.prototype.formParagraphs = function(text) {
 
     return grafs.join("\n\n");
 }
+
+/**
+ * Create a code span markup for $code. Called from handleSpanToken.
+ */
+Markdown_Parser.prototype.makeCodeSpan = function(code) {
+    code = _htmlspecialchars_ENT_NOQUOTES(_trim(code));
+    return this.hashPart("<code>" + code + "</code>");
+};
+
+
+
+
+/**
+ * Take the string $str and parse it into tokens, hashing embeded HTML,
+ * escaped characters and handling code spans.
+*/
+Markdown_Parser.prototype.parseSpan = function(str) {
+    var output = '';
+
+    var span_re = new RegExp(
+            '(' +
+                '\\\\' + this.escape_chars_re +
+            '|' +
+                '([^`\\\\]?)' +     // $2
+                '(`+)' +					// $3 // code span marker
+        (this.no_markup ? '' : (
+            '|' +
+                '<!--.*?-->' +		// comment
+            '|' +
+                '<\\?.*?\\?>|<%.*?%>' +		// processing instruction
+            '|' +
+                '<[/!$]?[-a-zA-Z0-9:_]+' +	// regular tags
+                '(?=' +
+                    '\\s' +
+                    '(?=[^"\'>]+|"[^"]*"|\'[^\']*\')*' +
+                ')?' +
+                '>'
+        )) +
+            ')'
+    );
+
+    while(1) {
+        //
+        // Each loop iteration seach for either the next tag, the next 
+        // openning code span marker, or the next escaped character. 
+        // Each token is then passed to handleSpanToken.
+        //
+        var parts = str.match(span_re); //PREG_SPLIT_DELIM_CAPTURE
+        if(parts) {
+            output += RegExp.leftContext + (RegExp.$2 ? RegExp.$2 : '');
+            var r = this.handleSpanToken(RegExp.$3 ? RegExp.$3 : RegExp.lastMatch, RegExp.rightContext);
+            output = r[0];
+            str = r[1];
+        }
+        else {
+            output += str;
+            break;
+        }
+    }
+    return output;
+};
+
+
+/**
+ * Handle $token provided by parseSpan by determining its nature and 
+ * returning the corresponding value that should replace it.
+*/
+Markdown_Parser.prototype.handleSpanToken = function(token, str) {
+    //console.log([token, str]);
+    switch (token.charAt(0)) {
+        case "\\":
+            return [this.hashPart("&#" + token.charCodeAt(1) + ";"), str];
+        case "`":
+            // Search for end marker in remaining text.
+            if (str.match(new RegExp('^(.*?[^`])' + _preg_quot(token) + '(?!`)(.*)$', 'm'))) {
+                str = RegExp.$2;
+                var codespan = this.makeCodeSpan(RegExp.$1);
+                return [this.hashPart(codespan), str];
+            }
+            return [token, str]; // return as text since no ending marker found.
+        default:
+            return [this.hashPart(token), str];
+    }
+};
 
 /**
  * Remove one level of line-leading tabs or spaces
