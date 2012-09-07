@@ -697,6 +697,14 @@ Markdown_Parser.prototype.runSpanGamut = function(text) {
     return text;
 };
 
+/**
+ * Create a code span markup for $code. Called from handleSpanToken.
+ */
+Markdown_Parser.prototype.makeCodeSpan = function(code) {
+    code = _htmlspecialchars_ENT_NOQUOTES(_trim(code));
+    return this.hashPart("<code>" + code + "</code>");
+};
+
 
 
 /**
@@ -784,15 +792,115 @@ Markdown_Parser.prototype.formParagraphs = function(text) {
 }
 
 /**
- * Create a code span markup for $code. Called from handleSpanToken.
+ * Encode text for a double-quoted HTML attribute. This function
+ * is *not* suitable for attributes enclosed in single quotes.
  */
-Markdown_Parser.prototype.makeCodeSpan = function(code) {
-    code = _htmlspecialchars_ENT_NOQUOTES(_trim(code));
-    return this.hashPart("<code>" + code + "</code>");
+Markdown_Parser.prototype.encodeAttribute = function(text) {
+    text = this.encodeAmpsAndAngles(text);
+    text = text.replace(/"/g, '&quot;');
+    return text;
 };
 
+/**
+ * Smart processing for ampersands and angle brackets that need to 
+ * be encoded. Valid character entities are left alone unless the
+ * no-entities mode is set.
+ */
+Markdown_Parser.prototype.encodeAmpsAndAngles = function(text) {
+    if (this.no_entities) {
+        text = text.replace(/&/g, '&amp;');
+    } else {
+        // Ampersand-encoding based entirely on Nat Irons's Amputator
+        // MT plugin: <http://bumppo.net/projects/amputator/>
+        text = text.replace(/&(?!#?[xX]?(?:[0-9a-fA-F]+|\w+);)/, '&amp;');
+    }
+    // Encode remaining <'s
+    text = text.replace(/</g, '&lt;');
 
+    return text;
+};
 
+Markdown_Parser.prototype.doAutoLinks = function(text) {
+    var self = this;
+    text = text.replace(/<((https?|ftp|dict):[^'">\s]+)>/i, function(match, address) {
+        console.log(match);
+        var url = self.encodeAttribute(address);
+        var link = "<a href=\"" + url + "\">" + url + "</a>";
+        return self.hashPart(link);
+    });
+
+    // Email addresses: <address@domain.foo>
+    text = text.replace(new RegExp(
+        '<' +
+        '(?:mailto:)?' +
+        '(' +
+            '(?:' +
+                '[-!#$%&\'*+/=?^_`.{|}~\w\x80-\xFF]+' +
+            '|' +
+                '".*?"' +
+            ')' +
+            '\@' +
+            '(?:' +
+                '[-a-z0-9\x80-\xFF]+(\.[-a-z0-9\x80-\xFF]+)*\.[a-z]+' +
+            '|' +
+                '\[[\d.a-fA-F:]+\]' +	// IPv4 & IPv6
+            ')' +
+        ')' +
+        '>', 'i'), function(match, address) {
+            console.log(match);
+            var link = self.encodeEmailAddress(address);
+            return self.hashPart(link);
+    });
+
+    return text;
+};
+
+/**
+ *  Input: an email address, e.g. "foo@example.com"
+ *
+ *  Output: the email address as a mailto link, with each character
+ *      of the address encoded as either a decimal or hex entity, in
+ *      the hopes of foiling most address harvesting spam bots. E.g.:
+ *
+ *    <p><a href="&#109;&#x61;&#105;&#x6c;&#116;&#x6f;&#58;&#x66;o&#111;
+ *        &#x40;&#101;&#x78;&#97;&#x6d;&#112;&#x6c;&#101;&#46;&#x63;&#111;
+ *        &#x6d;">&#x66;o&#111;&#x40;&#101;&#x78;&#97;&#x6d;&#112;&#x6c;
+ *        &#101;&#46;&#x63;&#111;&#x6d;</a></p>
+ *
+ *   Based by a filter by Matthew Wickline, posted to BBEdit-Talk.
+ *   With some optimizations by Milian Wolff.
+ */
+Markdown_Parser.prototype.encodeEmailAddress = function(addr) {
+    var addr = "mailto:" + addr;
+    // TODO: later
+    /*
+    var chars = [];
+    for(var i = 0; i < addr.length; i++) {
+        chars.push(addr.charAt(i));
+    }
+    var seed = Math.floor(Math.abs(_crc32(addr) / addr.length)); // # Deterministic seed.
+
+    for(var i = 0; i < chars.length; i++) {
+        var c = chars[i];
+        var ord = c.charCodeAt(0);
+        // Ignore non-ascii chars.
+        if(ord < 128) {
+            var r = (seed * (1 + i)) % 100; // Pseudo-random function.
+            // roughly 10% raw, 45% hex, 45% dec
+            // '@' *must* be encoded. I insist.
+            if(r > 90 && c != '@') { /* do nothing * / }
+            else if(r < 45) { chars[i] = '&#x' + _dechex(ord) + ';'; }
+            else            { chars[i] = '&#' + ord + ';'; }
+        }
+    }
+    */
+    addr = chars.join('');
+    
+    var text = addr.substr(7); // text without `mailto:`
+    addr = "<a href=\"" + addr + "\">" + text + "</a>";
+
+    return addr;
+};
 
 /**
  * Take the string $str and parse it into tokens, hashing embeded HTML,
