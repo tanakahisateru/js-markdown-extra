@@ -85,8 +85,8 @@ function _preg_quot(text) {
 }
 
 function _str_repeat(str, n) {
-    var tmp = "";
-    for(var i = 0; i < n; i++) {
+    var tmp = str;
+    for(var i = 1; i < n; i++) {
         tmp += str;
     }
     return tmp;
@@ -190,14 +190,12 @@ Markdown_Parser.prototype.init = function() {
     //    str_repeat('(?>[^()\\s]+|\\(', this.nested_url_parenthesis_depth) +
     //    str_repeat('(?>\\)))*', this.nested_url_parenthesis_depth)
     //);
-    this.nested_brackets_re = new RegExp(
+    this.nested_brackets_re =
         _str_repeat('(?:[^\\[\\]]+|\\[', this.nested_brackets_depth) +
-        _str_repeat('\\])*', this.nested_brackets_depth)
-    );
-    this.nested_url_parenthesis_re = new RegExp(
-        _str_repeat('(?:[^()\\s]+|\\(', this.nested_url_parenthesis_depth) +
-        _str_repeat('(?:\\)))*', this.nested_url_parenthesis_depth)
-    );
+        _str_repeat('\\])*', this.nested_brackets_depth);
+    this.nested_url_parenthesis_re =
+        _str_repeat('(?:[^\\(\\)\\s]+|\\(', this.nested_url_parenthesis_depth) +
+        _str_repeat('(?:\\)))*', this.nested_url_parenthesis_depth);
 
     // Table of hash values for escaped characters:
     var tmp = []
@@ -215,8 +213,8 @@ Markdown_Parser.prototype.init = function() {
     this.no_entities = false;
 
     // Predefined urls and titles for reference links and images.
-    this.predef_urls = [];
-    this.predef_titles = [];
+    this.predef_urls = {};
+    this.predef_titles = {};
 
     // Sort document, block, and span gamut in ascendent priority order.
     function cmp_gamut(a, b) {
@@ -228,8 +226,8 @@ Markdown_Parser.prototype.init = function() {
     this.span_gamut.sort(cmp_gamut);
 
     // Internal hashes used during transformation.
-    this.urls = [];
-    this.titles = [];
+    this.urls = {};
+    this.titles = {};
     this.html_hashes = {};
 
     // Status flag to avoid invalid nesting.
@@ -309,8 +307,8 @@ Markdown_Parser.prototype.setup = function() {
  * which may be taking up memory unnecessarly.
  */
 Markdown_Parser.prototype.teardown = function() {
-    this.urls = [];
-    this.titles = [];
+    this.urls = {};
+    this.titles = {};
     this.html_hashes = {};
 };
 
@@ -569,10 +567,10 @@ Markdown_Parser.prototype.stripLinkDefinitions = function(text) {
                 '[ ]*' +
             ')?' +	// title is optional
             '(?:\\n+|\\n*(?=\\x03))',
-        'm'), function(match, id, url2, url3, title) {
+        'mg'), function(match, id, url2, url3, title) {
             console.log(match);
             var link_id = id.toLowerCase();
-            var url = url2 == '' ? url3 : url2;
+            var url = url2 ? url2 : url3;
             self.urls[link_id] = url;
             self.titles[link_id] = title;
             return ''; // String that will replace the block
@@ -698,6 +696,232 @@ Markdown_Parser.prototype.runSpanGamut = function(text) {
 };
 
 /**
+ * Do hard breaks:
+ */
+Markdown_Parser.prototype.doHardBreaks = function(text) {
+    var self = this;
+    return text.replace(/ {2,}\n/, function(match) {
+        //console.log(match);
+        return self.hashPart("<br" + self.empty_element_suffix + "\n");
+    });
+};
+
+/**
+ * Turn Markdown link shortcuts into XHTML <a> tags.
+ */
+Markdown_Parser.prototype.doAnchors = function(text) {
+    if (this.in_anchor) return text;
+    this.in_anchor = true;
+
+    var self = this;
+
+    var _doAnchors_reference_callback = function(match, whole_match, link_text, link_id) {
+        console.log(match);
+        if (link_id == "") {
+            // for shortcut links like [this][] or [this].
+            link_id = link_text;
+        }
+
+        // lower-case and turn embedded newlines into spaces
+        link_id = link_id.toLowerCase();
+        link_id = link_id.replace(/[ ]?\n/, ' ');
+
+        var result;
+        if (self.urls[link_id] !== undefined) {
+            var url = self.urls[link_id];
+            url = self.encodeAttribute(url);
+
+            result = "<a href=\"" + url + "\"";
+            if (self.titles[link_id] !== undefined) {
+                var title = self.titles[link_id];
+                title = self.encodeAttribute(title);
+                result +=  " title=\"" + title + "\"";
+            }
+
+            var link_text = self.runSpanGamut(link_text);
+            result += ">" + link_text + "</a>";
+            result = self.hashPart(result);
+        }
+        else {
+            result = whole_match;
+        }
+        return result;
+    };
+
+    //
+    // First, handle reference-style links: [link text] [id]
+    //
+    text = text.replace(new RegExp(
+        '(' +					// wrap whole match in $1
+          '\\[' +
+            '(' + this.nested_brackets_re + ')' +  // link text = $2
+          '\\]' +
+
+          '[ ]?' +				// one optional space
+          '(?:\\n[ ]*)?' +		// one optional newline followed by spaces
+
+          '\\[' +
+            '(.*?)' +		// id = $3
+          '\\]' +
+        ')'), _doAnchors_reference_callback
+    );
+
+    //
+    // Next, inline-style links: [link text](url "optional title")
+    //
+    text = text.replace(new RegExp(
+        '(' +				// wrap whole match in $1
+          '\\[' +
+            '(' + this.nested_brackets_re + ')' +	// link text = $2
+          '\\]' +
+          '\\(' +			// literal paren
+            '[ \\n]*' +
+            '(?:' +
+                '<(.+?)>' +	// href = $3
+            '|' +
+                '(' + this.nested_url_parenthesis_re + ')' +	// href = $4
+            ')' +
+            '[ \\n]*' +
+            '(' +			// $5
+              '([\'"])' +	// quote char = $6
+              '(.*?)' +		// Title = $7
+              '\\6' +		// matching quote
+              '[ \\n]*' +	// ignore any spaces/tabs between closing quote and )
+            ')?' +			// title is optional
+          '\\)' +
+        ')'), function(match, whole_match, link_text, url3, url4, x0, x1, title) {
+            console.log(match);
+            link_text = self.runSpanGamut(link_text);
+            var url = url3 ? url3 : url4;
+
+            url = self.encodeAttribute(url);
+
+            var result = "<a href=\"" + url + "\"";
+            if (title !== undefined) {
+                title = self.encodeAttribute(title);
+                result +=  " title=\"" + title + "\"";
+            }
+
+            link_text = self.runSpanGamut(link_text);
+            result += ">" + link_text + "</a>";
+
+            return self.hashPart(result);
+        }
+    );
+
+    //
+    // Last, handle reference-style shortcuts: [link text]
+    // These must come last in case you've also got [link text][1]
+    // or [link text](/foo)
+    //
+    text = text.replace(new RegExp(
+        '(' +					//# wrap whole match in $1
+          '\\[' +
+            ' +([^\\[\\]]+)' +		//# link text = $2; can\'t contain [ or ]
+          ' +\\]' +
+        ' +)'), _doAnchors_reference_callback
+    );
+
+    this.in_anchor = false;
+    return text;
+};
+
+/**
+ * Turn Markdown image shortcuts into <img> tags.
+ */
+Markdown_Parser.prototype.doImages = function(text) {
+    var self = this;
+
+    //
+    // First, handle reference-style labeled images: ![alt text][id]
+    //
+    text = text.replace(new RegExp(
+        '(' +				// wrap whole match in $1
+          '!\\[' +
+            '(' + this.nested_brackets_re + ')' +		// alt text = $2
+          '\\]' +
+
+          '[ ]?' +				// one optional space
+          '(?:\\n[ ]*)?' +		// one optional newline followed by spaces
+
+          '\\[' +
+            '(.*?)' +		// id = $3
+          '\\]' +
+
+        ')'), function(match, whole_match, alt_text, link_id) {
+        console.log(match);
+        link_id = link_id.toLowerCase();
+
+        if (link_id == "") {
+            $link_id = alt_text.toLowerCase(); // for shortcut links like ![this][].
+        }
+
+        alt_text = self.encodeAttribute(alt_text);
+        var result;
+        if (self.urls[link_id] !== undefined) {
+            var url = self.encodeAttribute(self.urls[link_id]);
+            result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
+            if (self.titles[link_id] !== undefined) {
+                var title = self.titles[link_id];
+                title = self.encodeAttribute(title);
+                result +=  " title=\"" + title + "\"";
+            }
+            result += self.empty_element_suffix;
+            result = self.hashPart(result);
+        }
+        else {
+            // If there's no such link ID, leave intact:
+            result = whole_match;
+        }
+
+        return result;
+    });
+
+    //
+    // Next, handle inline images:  ![alt text](url "optional title")
+    // Don't forget: encode * and _
+    //
+    text = text.replace(new RegExp(
+        '(' + 				// wrap whole match in $1
+          '!\\[' +
+            '(' + this.nested_brackets_re + ')' +		// alt text = $2
+          '\\]' +
+          '\\s?' +			// One optional whitespace character
+          '\\(' +			// literal paren
+            '[ \\n]*' +
+            '(?:' +
+                '<(\\S*)>' +	// src url = $3
+            '|' +
+                '(' + this.nested_url_parenthesis_re + ')' +	// src url = $4
+            ')' +
+            '[ \\n]*' +
+            '(' +			// $5
+              '([\'"])' +	// quote char = $6
+              '(.*?)' +		// title = $7
+              '\\6' +		// matching quote
+              '[ \\n]*' +
+            ')?' +			// title is optional
+          '\\)' +
+        ')'), function(match, whole_match, alt_text, url3, url4, x5, x6, title) {
+        console.log(match);
+        var url = url3 ? url3 : url4;
+
+        alt_text = self.encodeAttribute(alt_text);
+        url = self.encodeAttribute(url);
+        var result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
+        if (title !== undefined) {
+            title = self.encodeAttribute(title);
+            result +=  " title=\"" + title + "\""; // $title already quoted
+        }
+        result += self.empty_element_suffix;
+
+        return self.hashPart(result);
+    });
+
+    return text;
+};
+
+/**
  * Create a code span markup for $code. Called from handleSpanToken.
  */
 Markdown_Parser.prototype.makeCodeSpan = function(code) {
@@ -705,7 +929,9 @@ Markdown_Parser.prototype.makeCodeSpan = function(code) {
     return this.hashPart("<code>" + code + "</code>");
 };
 
-
+Markdown_Parser.prototype.doItalicsAndBold = function(text) {
+    return text;
+};
 
 /**
  * Params:
