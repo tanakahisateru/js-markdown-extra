@@ -613,245 +613,6 @@ Markdown_Parser.prototype.runBasicBlockGamut = function(text) {
     return text;
 };
 
-Markdown_Parser.prototype.doHeaders = function(text) {
-    var self = this;
-    // Setext-style headers:
-    //    Header 1
-    //    ========
-    //
-    //    Header 2
-    //    --------
-    //
-    text = text.replace(/^(.+?)[ ]*\n(=+|-+)[ ]*\n+/mg, function(match, span, line) {
-            console.log(match);
-           // Terrible hack to check we haven't found an empty list item.
-            if(line == '-' && span.match(/^-(?: |$)/)) {
-                return match;
-            }
-            var level = line.charAt(0) == '=' ? 1 : 2;
-            var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
-            return "\n" + self.hashBlock(block)  + "\n\n";
-        }
-    );
-
-    // atx-style headers:
-    //  # Header 1
-    //  ## Header 2
-    //  ## Header 2 with closing hashes ##
-    //  ...
-    //  ###### Header 6
-    //
-    text = text.replace(new RegExp(
-        '^(\\#{1,6})' + // $1 = string of #\'s
-        '[ ]*'       +
-        '(.+?)'      + // $2 = Header text
-        '[ ]*'       +
-        '\\#*'        + // optional closing #\'s (not counted)
-        '\\n+',
-        'mg'), function(match, hashes, span) {
-            console.log(match);
-            var level = hashes.length;
-            var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
-            return "\n" + self.hashBlock(block) + "\n\n";
-        }
-    );
-
-    return text;
-}
-
-/**
- * Form HTML ordered (numbered) and unordered (bulleted) lists.
- */
-Markdown_Parser.prototype.doLists = function(text) {
-    var less_than_tab = this.tab_width - 1;
-
-    // Re-usable patterns to match list item bullets and number markers:
-    var marker_ul_re  = '[\\*\\+-]';
-    var marker_ol_re  = '\\d+[\\.]';
-    var marker_any_re = "(?:" + marker_ul_re + "|" + marker_ol_re + ")";
-
-    var self = this;
-    var _doLists_callback = function(match, list, x2, x3, type) {
-        console.log(match);
-        // Re-usable patterns to match list item bullets and number markers:
-        var list_type = type.match(marker_ul_re) ? "ul" : "ol";
-
-        var marker_any_re = list_type == "ul" ? marker_ul_re : marker_ol_re;
-
-        list += "\n";
-        var result = self.processListItems(list, marker_any_re);
-
-        result = self.hashBlock("<" + list_type + ">\n" + result + "</" + list_type + ">");
-        return "\n" + result + "\n\n";
-    };
-
-    var markers_relist = [
-        [marker_ul_re, marker_ol_re],
-        [marker_ol_re, marker_ul_re]
-    ];
-
-    text = this.__wrapSTXETX__(text);
-    for (var i = 0; i < markers_relist.length; i++) {
-        var marker_re = markers_relist[i][0];
-        var other_marker_re = markers_relist[i][1];
-        // Re-usable pattern to match any entirel ul or ol list:
-        var whole_list_re =
-            '(' +								// $1 = whole list
-              '(' +								// $2
-                '([ ]{0,' + less_than_tab + '})' +	// $3 = number of spaces
-                '(' + marker_re + ')' +			// $4 = first list item marker
-                '[ ]+' +
-              ')' +
-              '[\\s\\S]+?' +
-              '(' +								// $5
-                  '(?=\\x03)' +  // \z
-                '|' +
-                  '\\n{2,}' +
-                  '(?=\\S)' +
-                  '(?!' +						// Negative lookahead for another list item marker
-                    '[ ]*' +
-                    marker_re + '[ ]+' +
-                  ')' +
-                '|' +
-                  '(?=' +						// Lookahead for another kind of list
-                    '\\n' +
-                    '\\3' +						// Must have the same indentation
-                    other_marker_re + '[ ]+' +
-                  ')' +
-              ')' +
-            ')'; // mx
-
-        // We use a different prefix before nested lists than top-level lists.
-        // See extended comment in _ProcessListItems().
-
-        if (this.list_level) {
-            text = text.replace(new RegExp('^' + whole_list_re, "mg"), _doLists_callback);
-        }
-        else {
-            text = text.replace(new RegExp(
-                '(?:(?=\\n)\\n|\\A\\n?)' + // Must eat the newline
-                whole_list_re, "mg"
-            ), _doLists_callback);
-        }
-    }
-    text = this.__unwrapSTXETX__(text);
-
-    return text;
-};
-
-// var $list_level = 0;
-
-/**
- * Process the contents of a single ordered or unordered list, splitting it
- * into individual list items.
- */
-Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
-    // The $this->list_level global keeps track of when we're inside a list.
-    // Each time we enter a list, we increment it; when we leave a list,
-    // we decrement. If it's zero, we're not in a list anymore.
-    //
-    // We do this because when we're not inside a list, we want to treat
-    // something like this:
-    //
-    //    I recommend upgrading to version
-    //    8. Oops, now this line is treated
-    //    as a sub-list.
-    //
-    // As a single paragraph, despite the fact that the second line starts
-    // with a digit-period-space sequence.
-    //
-    // Whereas when we're inside a list (or sub-list), that line will be
-    // treated as the start of a sub-list. What a kludge, huh? This is
-    // an aspect of Markdown's syntax that's hard to parse perfectly
-    // without resorting to mind-reading. Perhaps the solution is to
-    // change the syntax rules such that sub-lists must start with a
-    // starting cardinal number; e.g. "1." or "a.".
-
-    if(this.list_level === undefined) {
-        this.list_level = 0;
-    }
-    this.list_level++;
-
-    // trim trailing blank lines:
-    list_str = this.__wrapSTXETX__(list_str);
-    var list_str = list_str.replace(/\n{2,}(?=\\x03)/m, "\n");
-    list_str = this.__unwrapSTXETX__(list_str);
-
-    var self = this;
-    list_str = this.__wrapSTXETX__(list_str);
-    list_str = list_str.replace(new RegExp(
-        '(\\n)?' +							// leading line = $1
-        '([ ]*)' +							// leading whitespace = $2
-        '(' + marker_any_re +				// list marker and space = $3
-            '(?:[ ]+|(?=\\n))' +				// space only required if item is not empty
-        ')' +
-        '([\\s\\S]*?)' +						// list item text   = $4
-        '(?:(\\n+(?=\\n))|\\n)' +				// tailing blank line = $5
-        '(?=\\n*((?=\\x03)|\\2(' + marker_any_re + ')(?:[ ]+|(?=\\n))))', "gm"
-    ), function(match, leading_line, leading_space, marker_space, item, tailing_blank_line) {
-        console.log(match);
-        if (leading_line || tailing_blank_line || item.match(/\n{2,}/)) {
-            // Replace marker with the appropriate whitespace indentation
-            item = leading_space + _str_repeat(' ', marker_space.length) + item;
-            item = self.runBlockGamut(self.outdent(item) + "\n");
-        }
-        else {
-            // Recursion for sub-lists:
-            item = self.doLists(self.outdent(item));
-            item = item.replace(/\n+$/, '');
-            item = self.runSpanGamut(item);
-        }
-
-        return "<li>" + item + "</li>\n";
-    });
-    list_str = this.__unwrapSTXETX__(list_str);
-
-    this.list_level--;
-    return list_str;
-}
-
-/**
- *   Process Markdown `<pre><code>` blocks.
- */
-Markdown_Parser.prototype.doCodeBlocks = function(text) {
-    var self = this;
-    text = this.__wrapSTXETX__(text);
-    text = text.replace(new RegExp(
-        '(?:\\n\\n|(?=\\x02)\\n?)' +
-        '(' +	            // $1 = the code block -- one or more lines, starting with a space/tab
-          '(?:' +
-            '[ ]{' + this.tab_width + ',}' +  // Lines must start with a tab or a tab-width of spaces
-            '.*\\n+' +
-          ')+' +
-        ')' +
-        '((?=[ ]{0,' + this.tab_width + '}\\S)|(?:\\n*(?=\\x03)))',	// Lookahead for non-space at line-start, or end of doc
-        'mg'
-    ), function(match, codeblock) {
-        console.log(match);
-        codeblock = self.outdent(codeblock);
-        codeblock = _htmlspecialchars_ENT_NOQUOTES(codeblock);
-
-        // trim leading newlines and trailing newlines
-        codeblock = self.__wrapSTXETX__(codeblock);
-        codeblock = codeblock.replace(/(?=\x02)\n+|\n+(?=\x03)/g, '');
-        codeblock = self.__unwrapSTXETX__(codeblock);
-
-        codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
-        return "\n\n" + self.hashBlock(codeblock) + "\n\n";
-    });
-    text = this.__unwrapSTXETX__(text);
-    return text;
-};
-
-/**
- * Create a code span markup for $code. Called from handleSpanToken.
- */
-Markdown_Parser.prototype.makeCodeSpan = function(code) {
-    code = _htmlspecialchars_ENT_NOQUOTES(_trim(code));
-    return this.hashPart("<code>" + code + "</code>");
-};
-
-
 /**
  * Do Horizontal Rules:
  */
@@ -898,6 +659,7 @@ Markdown_Parser.prototype.doHardBreaks = function(text) {
         return self.hashPart("<br" + self.empty_element_suffix + "\n");
     });
 };
+
 
 /**
  * Turn Markdown link shortcuts into XHTML <a> tags.
@@ -1114,9 +876,279 @@ Markdown_Parser.prototype.doImages = function(text) {
     return text;
 };
 
+Markdown_Parser.prototype.doHeaders = function(text) {
+    var self = this;
+    // Setext-style headers:
+    //    Header 1
+    //    ========
+    //
+    //    Header 2
+    //    --------
+    //
+    text = text.replace(/^(.+?)[ ]*\n(=+|-+)[ ]*\n+/mg, function(match, span, line) {
+            console.log(match);
+           // Terrible hack to check we haven't found an empty list item.
+            if(line == '-' && span.match(/^-(?: |$)/)) {
+                return match;
+            }
+            var level = line.charAt(0) == '=' ? 1 : 2;
+            var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
+            return "\n" + self.hashBlock(block)  + "\n\n";
+        }
+    );
+
+    // atx-style headers:
+    //  # Header 1
+    //  ## Header 2
+    //  ## Header 2 with closing hashes ##
+    //  ...
+    //  ###### Header 6
+    //
+    text = text.replace(new RegExp(
+        '^(\\#{1,6})' + // $1 = string of #\'s
+        '[ ]*'       +
+        '(.+?)'      + // $2 = Header text
+        '[ ]*'       +
+        '\\#*'        + // optional closing #\'s (not counted)
+        '\\n+',
+        'mg'), function(match, hashes, span) {
+            console.log(match);
+            var level = hashes.length;
+            var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
+            return "\n" + self.hashBlock(block) + "\n\n";
+        }
+    );
+
+    return text;
+}
+
+/**
+ * Form HTML ordered (numbered) and unordered (bulleted) lists.
+ */
+Markdown_Parser.prototype.doLists = function(text) {
+    var less_than_tab = this.tab_width - 1;
+
+    // Re-usable patterns to match list item bullets and number markers:
+    var marker_ul_re  = '[\\*\\+-]';
+    var marker_ol_re  = '\\d+[\\.]';
+    var marker_any_re = "(?:" + marker_ul_re + "|" + marker_ol_re + ")";
+
+    var self = this;
+    var _doLists_callback = function(match, list, x2, x3, type) {
+        console.log(match);
+        // Re-usable patterns to match list item bullets and number markers:
+        var list_type = type.match(marker_ul_re) ? "ul" : "ol";
+
+        var marker_any_re = list_type == "ul" ? marker_ul_re : marker_ol_re;
+
+        list += "\n";
+        var result = self.processListItems(list, marker_any_re);
+
+        result = self.hashBlock("<" + list_type + ">\n" + result + "</" + list_type + ">");
+        return "\n" + result + "\n\n";
+    };
+
+    var markers_relist = [
+        [marker_ul_re, marker_ol_re],
+        [marker_ol_re, marker_ul_re]
+    ];
+
+    text = this.__wrapSTXETX__(text);
+    for (var i = 0; i < markers_relist.length; i++) {
+        var marker_re = markers_relist[i][0];
+        var other_marker_re = markers_relist[i][1];
+        // Re-usable pattern to match any entirel ul or ol list:
+        var whole_list_re =
+            '(' +								// $1 = whole list
+              '(' +								// $2
+                '([ ]{0,' + less_than_tab + '})' +	// $3 = number of spaces
+                '(' + marker_re + ')' +			// $4 = first list item marker
+                '[ ]+' +
+              ')' +
+              '[\\s\\S]+?' +
+              '(' +								// $5
+                  '(?=\\x03)' +  // \z
+                '|' +
+                  '\\n{2,}' +
+                  '(?=\\S)' +
+                  '(?!' +						// Negative lookahead for another list item marker
+                    '[ ]*' +
+                    marker_re + '[ ]+' +
+                  ')' +
+                '|' +
+                  '(?=' +						// Lookahead for another kind of list
+                    '\\n' +
+                    '\\3' +						// Must have the same indentation
+                    other_marker_re + '[ ]+' +
+                  ')' +
+              ')' +
+            ')'; // mx
+
+        // We use a different prefix before nested lists than top-level lists.
+        // See extended comment in _ProcessListItems().
+
+        if (this.list_level) {
+            text = text.replace(new RegExp('^' + whole_list_re, "mg"), _doLists_callback);
+        }
+        else {
+            text = text.replace(new RegExp(
+                '(?:(?=\\n)\\n|\\A\\n?)' + // Must eat the newline
+                whole_list_re, "mg"
+            ), _doLists_callback);
+        }
+    }
+    text = this.__unwrapSTXETX__(text);
+
+    return text;
+};
+
+// var $list_level = 0;
+
+/**
+ * Process the contents of a single ordered or unordered list, splitting it
+ * into individual list items.
+ */
+Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
+    // The $this->list_level global keeps track of when we're inside a list.
+    // Each time we enter a list, we increment it; when we leave a list,
+    // we decrement. If it's zero, we're not in a list anymore.
+    //
+    // We do this because when we're not inside a list, we want to treat
+    // something like this:
+    //
+    //    I recommend upgrading to version
+    //    8. Oops, now this line is treated
+    //    as a sub-list.
+    //
+    // As a single paragraph, despite the fact that the second line starts
+    // with a digit-period-space sequence.
+    //
+    // Whereas when we're inside a list (or sub-list), that line will be
+    // treated as the start of a sub-list. What a kludge, huh? This is
+    // an aspect of Markdown's syntax that's hard to parse perfectly
+    // without resorting to mind-reading. Perhaps the solution is to
+    // change the syntax rules such that sub-lists must start with a
+    // starting cardinal number; e.g. "1." or "a.".
+
+    if(this.list_level === undefined) {
+        this.list_level = 0;
+    }
+    this.list_level++;
+
+    // trim trailing blank lines:
+    list_str = this.__wrapSTXETX__(list_str);
+    var list_str = list_str.replace(/\n{2,}(?=\\x03)/m, "\n");
+    list_str = this.__unwrapSTXETX__(list_str);
+
+    var self = this;
+    list_str = this.__wrapSTXETX__(list_str);
+    list_str = list_str.replace(new RegExp(
+        '(\\n)?' +							// leading line = $1
+        '([ ]*)' +							// leading whitespace = $2
+        '(' + marker_any_re +				// list marker and space = $3
+            '(?:[ ]+|(?=\\n))' +				// space only required if item is not empty
+        ')' +
+        '([\\s\\S]*?)' +						// list item text   = $4
+        '(?:(\\n+(?=\\n))|\\n)' +				// tailing blank line = $5
+        '(?=\\n*((?=\\x03)|\\2(' + marker_any_re + ')(?:[ ]+|(?=\\n))))', "gm"
+    ), function(match, leading_line, leading_space, marker_space, item, tailing_blank_line) {
+        console.log(match);
+        if (leading_line || tailing_blank_line || item.match(/\n{2,}/)) {
+            // Replace marker with the appropriate whitespace indentation
+            item = leading_space + _str_repeat(' ', marker_space.length) + item;
+            item = self.runBlockGamut(self.outdent(item) + "\n");
+        }
+        else {
+            // Recursion for sub-lists:
+            item = self.doLists(self.outdent(item));
+            item = item.replace(/\n+$/, '');
+            item = self.runSpanGamut(item);
+        }
+
+        return "<li>" + item + "</li>\n";
+    });
+    list_str = this.__unwrapSTXETX__(list_str);
+
+    this.list_level--;
+    return list_str;
+}
+
+/**
+ *   Process Markdown `<pre><code>` blocks.
+ */
+Markdown_Parser.prototype.doCodeBlocks = function(text) {
+    var self = this;
+    text = this.__wrapSTXETX__(text);
+    text = text.replace(new RegExp(
+        '(?:\\n\\n|(?=\\x02)\\n?)' +
+        '(' +	            // $1 = the code block -- one or more lines, starting with a space/tab
+          '(?:^' +
+            '[ ]{' + this.tab_width + ',}' +  // Lines must start with a tab or a tab-width of spaces
+            '.*\\n+' +
+          ')+' +
+        ')' +
+        '((?=[ ]{0,' + this.tab_width + '}\\S)|(?:\\n*(?=\\x03)))',	// Lookahead for non-space at line-start, or end of doc
+        'mg'
+    ), function(match, codeblock) {
+        console.log(match);
+        codeblock = self.outdent(codeblock);
+        codeblock = _htmlspecialchars_ENT_NOQUOTES(codeblock);
+
+        // trim leading newlines and trailing newlines
+        codeblock = self.__wrapSTXETX__(codeblock);
+        codeblock = codeblock.replace(/(?=\x02)\n+|\n+(?=\x03)/g, '');
+        codeblock = self.__unwrapSTXETX__(codeblock);
+
+        codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
+        return "\n\n" + self.hashBlock(codeblock) + "\n\n";
+    });
+    text = this.__unwrapSTXETX__(text);
+    return text;
+};
+
+/**
+ * Create a code span markup for $code. Called from handleSpanToken.
+ */
+Markdown_Parser.prototype.makeCodeSpan = function(code) {
+    code = _htmlspecialchars_ENT_NOQUOTES(_trim(code));
+    return this.hashPart("<code>" + code + "</code>");
+};
+
 Markdown_Parser.prototype.doItalicsAndBold = function(text) {
     return text;
 };
+
+
+Markdown_Parser.prototype.doBlockQuotes = function(text) {
+    var self = this;
+    text = text.replace(new RegExp(
+        '('+								// Wrap whole match in $1
+          '(?:'+
+            '^[ ]*>[ ]?'+			// ">" at the start of a line
+              '.+\\n'+					// rest of the first line
+            '(.+\\n)*'+					// subsequent consecutive lines
+            '\\n*'+						// blanks
+          ')+'+
+        ')', 'mg'
+    ), function(match, bq) {
+        console.log(match);
+        // trim one level of quoting - trim whitespace-only lines
+        bq = bq.replace(/^[ ]*>[ ]?|^[ ]+$/mg, '');
+        bq = self.runBlockGamut(bq);		// recurse
+
+        bq = bq.replace(/^/mg, "  ");
+        // These leading spaces cause problem with <pre> content, 
+        // so we need to fix that:
+        bq = bq.replace(/(\\s*<pre>[\\s\\S]+?<\/pre>)/mg, function(match, pre) {
+            console.log(match);
+            pre = pre.replace(/^  /m, '');
+            return pre;
+        });
+
+        return "\n" + self.hashBlock("<blockquote>\n" + bq + "\n</blockquote>") + "\n\n";
+    });
+    return text;
+}
 
 /**
  * Params:
