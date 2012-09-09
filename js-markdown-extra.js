@@ -811,6 +811,48 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
 }
 
 /**
+ *   Process Markdown `<pre><code>` blocks.
+ */
+Markdown_Parser.prototype.doCodeBlocks = function(text) {
+    var self = this;
+    text = this.__wrapSTXETX__(text);
+    text = text.replace(new RegExp(
+        '(?:\\n\\n|(?=\\x02)\\n?)' +
+        '(' +	            // $1 = the code block -- one or more lines, starting with a space/tab
+          '(?:' +
+            '[ ]{' + this.tab_width + ',}' +  // Lines must start with a tab or a tab-width of spaces
+            '.*\\n+' +
+          ')+' +
+        ')' +
+        '((?=[ ]{0,' + this.tab_width + '}\\S)|(?:\\n*(?=\\x03)))',	// Lookahead for non-space at line-start, or end of doc
+        'mg'
+    ), function(match, codeblock) {
+        console.log(match);
+        codeblock = self.outdent(codeblock);
+        codeblock = _htmlspecialchars_ENT_NOQUOTES(codeblock);
+
+        // trim leading newlines and trailing newlines
+        codeblock = self.__wrapSTXETX__(codeblock);
+        codeblock = codeblock.replace(/(?=\x02)\n+|\n+(?=\x03)/g, '');
+        codeblock = self.__unwrapSTXETX__(codeblock);
+
+        codeblock = "<pre><code>" + codeblock + "\n</code></pre>";
+        return "\n\n" + self.hashBlock(codeblock) + "\n\n";
+    });
+    text = this.__unwrapSTXETX__(text);
+    return text;
+};
+
+/**
+ * Create a code span markup for $code. Called from handleSpanToken.
+ */
+Markdown_Parser.prototype.makeCodeSpan = function(code) {
+    code = _htmlspecialchars_ENT_NOQUOTES(_trim(code));
+    return this.hashPart("<code>" + code + "</code>");
+};
+
+
+/**
  * Do Horizontal Rules:
  */
 Markdown_Parser.prototype.doHorizontalRules = function(text) {
@@ -1070,14 +1112,6 @@ Markdown_Parser.prototype.doImages = function(text) {
     });
 
     return text;
-};
-
-/**
- * Create a code span markup for $code. Called from handleSpanToken.
- */
-Markdown_Parser.prototype.makeCodeSpan = function(code) {
-    code = _htmlspecialchars_ENT_NOQUOTES(_trim(code));
-    return this.hashPart("<code>" + code + "</code>");
 };
 
 Markdown_Parser.prototype.doItalicsAndBold = function(text) {
