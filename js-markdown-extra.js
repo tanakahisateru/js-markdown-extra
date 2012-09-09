@@ -1459,7 +1459,7 @@ Markdown_Parser.prototype.detab = function(text) {
  */
 Markdown_Parser.prototype.unhash = function(text) {
     var self = this;
-    return text.replace(/(.)\x1A[0-9]+\1/, function(match) {
+    return text.replace(/(.)\x1A[0-9]+\1/g, function(match) {
         return self.html_hashes[match];
     });
 };
