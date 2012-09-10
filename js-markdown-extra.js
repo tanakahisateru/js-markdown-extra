@@ -235,39 +235,6 @@ Markdown_Parser.prototype.init = function() {
 }
 
 /**
- * Prepare regular expressions for searching emphasis tokens in any
- * context.
- */
-Markdown_Parser.prototype.prepareItalicsAndBold = function() {
-    this.em_strong_prepared_relist = [];
-    for(var i = 0; i < this.em_relist.length; i++) {
-        var em = this.em_relist[i][0];
-        var em_re = this.em_relist[i][1];
-        for(var j = 0; j < this.strong_relist.length; j++) {
-            var strong = this.strong_relist[j][0];
-            var strong_re = this.strong_relist[j][1];
-            // Construct list of allowed token expressions.
-            var token_relist = [];
-            for(var k = 0; k < this.em_strong_relist.length; k++) {
-                var em_strong = this.em_strong_relist[k][0];
-                var em_strong_re = this.em_strong_relist[k][1];
-                if(em + strong == em_strong) {
-                    token_relist.push(em_strong_re);
-                }
-            }
-            token_relist.push(em_re);
-            token_relist.push(strong_re);
-
-            // Construct master expression from list.
-            var token_re = '{(' + token_relist.join('|')  + ')}';
-            this.em_strong_prepared_relist.push(
-                [em + strong, token_re]
-            );
-        }
-    }
-};
-
-/**
  * [porting note]
  * JavaScript's RegExp doesn't have escape code \A and \Z.
  * So multiline pattern can't match start/end of text. Instead
@@ -495,7 +462,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
     var self = this;
     text = this.__wrapSTXETX__(text);
     text = text.replace(all, function(match, text) {
-        console.log(match);
+        //console.log(match);
         var key  = self.hashBlock(text);
         return "\n\n" + key + "\n\n";
     });
@@ -568,7 +535,7 @@ Markdown_Parser.prototype.stripLinkDefinitions = function(text) {
             ')?' +	// title is optional
             '(?:\\n+|\\n*(?=\\x03))',
         'mg'), function(match, id, url2, url3, title) {
-            console.log(match);
+            //console.log(match);
             var link_id = id.toLowerCase();
             var url = url2 ? url2 : url3;
             self.urls[link_id] = url;
@@ -628,7 +595,7 @@ Markdown_Parser.prototype.doHorizontalRules = function(text) {
         '[ ]*'         + //Tailing spaces
         '$'            , // End of line.
     'mg'), function(match) {
-        console.log(match);
+        //console.log(match);
         return "\n" + self.hashBlock("<hr" + self.empty_element_suffix) + "\n";
     });
 };
@@ -671,7 +638,7 @@ Markdown_Parser.prototype.doAnchors = function(text) {
     var self = this;
 
     var _doAnchors_reference_callback = function(match, whole_match, link_text, link_id) {
-        console.log(match);
+        //console.log(match);
         if (link_id == "") {
             // for shortcut links like [this][] or [this].
             link_id = link_text;
@@ -745,7 +712,7 @@ Markdown_Parser.prototype.doAnchors = function(text) {
             ')?' +			// title is optional
           '\\)' +
         ')'), function(match, whole_match, link_text, url3, url4, x0, x1, title) {
-            console.log(match);
+            //console.log(match);
             link_text = self.runSpanGamut(link_text);
             var url = url3 ? url3 : url4;
 
@@ -803,8 +770,9 @@ Markdown_Parser.prototype.doImages = function(text) {
             '(.*?)' +		// id = $3
           '\\]' +
 
-        ')'), function(match, whole_match, alt_text, link_id) {
-        console.log(match);
+        ')'
+    ), function(match, whole_match, alt_text, link_id) {
+        //console.log(match);
         link_id = link_id.toLowerCase();
 
         if (link_id == "") {
@@ -857,8 +825,9 @@ Markdown_Parser.prototype.doImages = function(text) {
               '[ \\n]*' +
             ')?' +			// title is optional
           '\\)' +
-        ')'), function(match, whole_match, alt_text, url3, url4, x5, x6, title) {
-        console.log(match);
+        ')'
+    ), function(match, whole_match, alt_text, url3, url4, x5, x6, title) {
+        //console.log(match);
         var url = url3 ? url3 : url4;
 
         alt_text = self.encodeAttribute(alt_text);
@@ -886,16 +855,15 @@ Markdown_Parser.prototype.doHeaders = function(text) {
     //    --------
     //
     text = text.replace(/^(.+?)[ ]*\n(=+|-+)[ ]*\n+/mg, function(match, span, line) {
-            console.log(match);
-           // Terrible hack to check we haven't found an empty list item.
-            if(line == '-' && span.match(/^-(?: |$)/)) {
-                return match;
-            }
-            var level = line.charAt(0) == '=' ? 1 : 2;
-            var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
-            return "\n" + self.hashBlock(block)  + "\n\n";
+       //console.log(match);
+       // Terrible hack to check we haven't found an empty list item.
+        if(line == '-' && span.match(/^-(?: |$)/)) {
+            return match;
         }
-    );
+        var level = line.charAt(0) == '=' ? 1 : 2;
+        var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
+        return "\n" + self.hashBlock(block)  + "\n\n";
+    });
 
     // atx-style headers:
     //  # Header 1
@@ -912,7 +880,7 @@ Markdown_Parser.prototype.doHeaders = function(text) {
         '\\#*'        + // optional closing #\'s (not counted)
         '\\n+',
         'mg'), function(match, hashes, span) {
-            console.log(match);
+            //console.log(match);
             var level = hashes.length;
             var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
             return "\n" + self.hashBlock(block) + "\n\n";
@@ -935,7 +903,7 @@ Markdown_Parser.prototype.doLists = function(text) {
 
     var self = this;
     var _doLists_callback = function(match, list, x2, x3, type) {
-        console.log(match);
+        //console.log(match);
         // Re-usable patterns to match list item bullets and number markers:
         var list_type = type.match(marker_ul_re) ? "ul" : "ol";
 
@@ -1052,7 +1020,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
         '(?:(\\n+(?=\\n))|\\n)' +				// tailing blank line = $5
         '(?=\\n*((?=\\x03)|\\2(' + marker_any_re + ')(?:[ ]+|(?=\\n))))', "gm"
     ), function(match, leading_line, leading_space, marker_space, item, tailing_blank_line) {
-        console.log(match);
+        //console.log(match);
         if (leading_line || tailing_blank_line || item.match(/\n{2,}/)) {
             // Replace marker with the appropriate whitespace indentation
             item = leading_space + _str_repeat(' ', marker_space.length) + item;
@@ -1090,7 +1058,7 @@ Markdown_Parser.prototype.doCodeBlocks = function(text) {
         '((?=[ ]{0,' + this.tab_width + '}\\S)|(?:\\n*(?=\\x03)))',	// Lookahead for non-space at line-start, or end of doc
         'mg'
     ), function(match, codeblock) {
-        console.log(match);
+        //console.log(match);
         codeblock = self.outdent(codeblock);
         codeblock = _htmlspecialchars_ENT_NOQUOTES(codeblock);
 
@@ -1114,6 +1082,41 @@ Markdown_Parser.prototype.makeCodeSpan = function(code) {
     return this.hashPart("<code>" + code + "</code>");
 };
 
+/**
+ * Prepare regular expressions for searching emphasis tokens in any
+ * context.
+ */
+Markdown_Parser.prototype.prepareItalicsAndBold = function() {
+    this.em_strong_prepared_relist = {};
+    
+    //this.em_strong_prepared_relist['rx_'] = /(.*(?:\S|^)(?:[^\*]))(\\*\\*)([^\*][\\s\\S]*)/m;
+    //return;
+    
+    for(var i = 0; i < this.em_relist.length; i++) {
+        var em = this.em_relist[i][0];
+        var em_re = this.em_relist[i][1];
+        for(var j = 0; j < this.strong_relist.length; j++) {
+            var strong = this.strong_relist[j][0];
+            var strong_re = this.strong_relist[j][1];
+            // Construct list of allowed token expressions.
+            var token_relist = [];
+            for(var k = 0; k < this.em_strong_relist.length; k++) {
+                var em_strong = this.em_strong_relist[k][0];
+                var em_strong_re = this.em_strong_relist[k][1];
+                if(em + strong == em_strong) {
+                    token_relist.push(em_strong_re);
+                }
+            }
+            token_relist.push(em_re);
+            token_relist.push(strong_re);
+
+            // Construct master expression from list.
+            var token_re = new RegExp('(' + token_relist.join('|')  + ')');
+            this.em_strong_prepared_relist['rx_' + em + strong] = token_re;
+        }
+    }
+};
+
 Markdown_Parser.prototype.doItalicsAndBold = function(text) {
     return text;
 };
@@ -1131,7 +1134,7 @@ Markdown_Parser.prototype.doBlockQuotes = function(text) {
           ')+'+
         ')', 'mg'
     ), function(match, bq) {
-        console.log(match);
+        //console.log(match);
         // trim one level of quoting - trim whitespace-only lines
         bq = bq.replace(/^[ ]*>[ ]?|^[ ]+$/mg, '');
         bq = self.runBlockGamut(bq);		// recurse
@@ -1140,7 +1143,7 @@ Markdown_Parser.prototype.doBlockQuotes = function(text) {
         // These leading spaces cause problem with <pre> content, 
         // so we need to fix that:
         bq = bq.replace(/(\\s*<pre>[\\s\\S]+?<\/pre>)/mg, function(match, pre) {
-            console.log(match);
+            //console.log(match);
             pre = pre.replace(/^  /m, '');
             return pre;
         });
@@ -1266,7 +1269,7 @@ Markdown_Parser.prototype.encodeAmpsAndAngles = function(text) {
 Markdown_Parser.prototype.doAutoLinks = function(text) {
     var self = this;
     text = text.replace(/<((https?|ftp|dict):[^'">\s]+)>/i, function(match, address) {
-        console.log(match);
+        //console.log(match);
         var url = self.encodeAttribute(address);
         var link = "<a href=\"" + url + "\">" + url + "</a>";
         return self.hashPart(link);
@@ -1289,10 +1292,11 @@ Markdown_Parser.prototype.doAutoLinks = function(text) {
                 '\[[\d.a-fA-F:]+\]' +	// IPv4 & IPv6
             ')' +
         ')' +
-        '>', 'i'), function(match, address) {
-            console.log(match);
-            var link = self.encodeEmailAddress(address);
-            return self.hashPart(link);
+        '>', 'i'
+    ), function(match, address) {
+        //console.log(match);
+        var link = self.encodeEmailAddress(address);
+        return self.hashPart(link);
     });
 
     return text;
