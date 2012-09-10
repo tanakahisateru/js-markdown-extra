@@ -49,10 +49,7 @@ var MARKDOWN_WP_POSTS    = true;
 var MARKDOWN_WP_COMMENTS = true;
 
 /** Standard Function Interface */
-MARKDOWN_PARSER_CLASS = function() {
-    return new Markdown_Parser();
-    //return new MarkdownExtra_Parser();
-};
+MARKDOWN_PARSER_CLASS = 'Markdown_Parser';
 
 /**
  * Converts Markdown formatted text to HTML.
@@ -63,7 +60,7 @@ function Markdown($text) {
     //Initialize the parser and return the result of its transform method.
     var parser;
     if('undefined' == typeof arguments.callee.parser) {
-        parser = MARKDOWN_PARSER_CLASS();
+        parser = eval("new " + MARKDOWN_PARSER_CLASS + "()");
         parser.init();
         arguments.callee.parser = parser;
     }
@@ -114,7 +111,7 @@ function _htmlspecialchars_ENT_NOQUOTES(str) {
  * Constructor function. Initialize appropriate member variables.
  */
 function Markdown_Parser() {
-    
+
     this.nested_brackets_depth = 6;
     this.nested_url_parenthesis_depth = 4;
     this.escape_chars = "\\`*_{}[]()>#+-.!";
