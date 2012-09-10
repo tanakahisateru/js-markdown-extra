@@ -155,28 +155,26 @@ function Markdown_Parser() {
         ['doHardBreaks',        60]
     ];
 
-    /*
     this.em_relist = [
-        ['' , /(?:(?<!\*)\*(?!\*)|(?<!_)_(?!_))(?=\S|$)(?![\.,:;]\s)/],
-        ['*', /(?<=\S|^)(?<!\*)\*(?!\*)/],
-        ['_', /(?<=\S|^)(?<!_)_(?!_)/]
+        ['' , '(?:(^|[^\\*])(\\*)(?=[^\\*])|(^|[^_])(_)(?=[^_]))(?=\\S|$)(?![\\.,:;]\\s)'],
+        ['*', '((?:\\S|^)[^\\*])(\\*)(?!\\*)'],
+        ['_', '((?:\\S|^)[^_])(_)(?!_)']
     ];
     this.strong_relist = [
-        [''  , /(?:(?<!\*)\*\*(?!\*)|(?<!_)__(?!_))(?=\S|$)(?![\.,:;]\s)/],
-        ['**', /(?<=\S|^)(?<!\*)\*\*(?!\*)/],
-        ['__', /(?<=\S|^)(?<!_)__(?!_)/]
+        ['' , '(?:(^|[^\\*])(\\*\\*)(?=[^\\*])|(^|[^_])(__)(?=[^_]))(?=\\S|$)(?![\\.,:;]\\s)'],
+        ['**', '((?:\\S|^)[^\\*])(\\*\\*)(?!\\*)'],
+        ['__', '((?:\\S|^)[^_])(__)(?!_)']
     ];
     this.em_strong_relist = [
-        [''   , /(?:(?<!\*)\*\*\*(?!\*)|(?<!_)___(?!_))(?=\S|$)(?![\.,:;]\s)/],
-        ['***', /(?<=\S|^)(?<!\*)\*\*\*(?!\*)/],
-        ['___', /(?<=\S|^)(?<!_)___(?!_)/]
+        ['' , '(?:(^|[^\\*])(\\*\\*\\*)(?=[^\\*])|(^|[^_])(___)(?=[^_]))(?=\\S|$)(?![\\.,:;]\\s)'],
+        ['***', '((?:\\S|^)[^\\*])(\\*\\*\\*)(?!\\*)'],
+        ['___', '((?:\\S|^)[^_])(___)(?!_)']
     ];
-    */
 }
 
 Markdown_Parser.prototype.init = function() {
     // this._initDetab(); // NOTE: JavaScript string length is already based on Unicode
-    // this.prepareItalicsAndBold(); // NOTE: JavaScript can't use backword reading in regexp
+    this.prepareItalicsAndBold(); // NOTE: JavaScript can't use backword reading in regexp
 
     // Regex to match balanced [brackets].
     // Needed to insert a maximum bracked depth while converting to PHP.
@@ -1088,10 +1086,6 @@ Markdown_Parser.prototype.makeCodeSpan = function(code) {
  */
 Markdown_Parser.prototype.prepareItalicsAndBold = function() {
     this.em_strong_prepared_relist = {};
-    
-    //this.em_strong_prepared_relist['rx_'] = /(.*(?:\S|^)(?:[^\*]))(\\*\\*)([^\*][\\s\\S]*)/m;
-    //return;
-    
     for(var i = 0; i < this.em_relist.length; i++) {
         var em = this.em_relist[i][0];
         var em_re = this.em_relist[i][1];
@@ -1118,7 +1112,141 @@ Markdown_Parser.prototype.prepareItalicsAndBold = function() {
 };
 
 Markdown_Parser.prototype.doItalicsAndBold = function(text) {
-    return text;
+    var em = '';
+    var strong = '';
+    var tree_char_em = false;
+    var text_stack = [''];
+    var token_stack = [];
+
+    while (1) {
+        //
+        // Get prepared regular expression for seraching emphasis tokens
+        // in current context.
+        //
+        var token_re = this.em_strong_prepared_relist['rx_' + em + strong];
+
+        //
+        // Each loop iteration search for the next emphasis token. 
+        // Each token is then passed to handleSpanToken.
+        //
+        var parts = text.match(token_re); //PREG_SPLIT_DELIM_CAPTURE
+        if(parts) {
+            var left = RegExp.leftContext;
+            var right = RegExp.rightContext;
+            var pre = "";
+            var marker = parts[1];
+            for(var mg = 2; mg < parts.length; mg += 2) {
+                if(parts[mg] !== undefined) {
+                    pre = parts[mg];
+                    marker = parts[mg + 1];
+                    break;
+                }
+            }
+            //console.log([left + pre, marker]);
+            text_stack[0] += left + pre;
+            token = marker;
+            text = right;
+        }
+        else {
+            text_stack[0] += text;
+            // Reached end of text span: empty stack without emitting.
+            // any more emphasis.
+            while (token_stack.length > 0 && token_stack[0].length > 0) {
+                text_stack[1] += token_stack.shift();
+                text_stack[0] += text_stack.shift();
+            }
+            break;
+        }
+
+        var tag, span;
+
+        var token_len = token.length;
+        if (tree_char_em) {
+            // Reached closing marker while inside a three-char emphasis.
+            if (token_len == 3) {
+                // Three-char closing marker, close em and strong.
+                token_stack.shift();
+                span = text_stack.shift();
+                span = this.runSpanGamut(span);
+                span = "<strong><em>" + span + "</em></strong>";
+                text_stack[0] += this.hashPart(span);
+                em = '';
+                strong = '';
+            } else {
+                // Other closing marker: close one em or strong and
+                // change current token state to match the other
+                token_stack[0] = _str_repeat(token.charAt(0), 3 - token_len);
+                tag = token_len == 2 ? "strong" : "em";
+                span = text_stack[0];
+                span = this.runSpanGamut(span);
+                span = "<" + tag + ">" + span + "</" + tag + ">";
+                text_stack[0] = this.hashPart(span);
+                if(tag == 'strong') { strong = ''; } else { em = ''; }
+            }
+            tree_char_em = false;
+        } else if (token_len == 3) {
+            if (em != '') {
+                // Reached closing marker for both em and strong.
+                // Closing strong marker:
+                for (var i = 0; i < 2; ++i) {
+                    var shifted_token = token_stack.shift();
+                    tag = shifted_token.length == 2 ? "strong" : "em";
+                    span = text_stack.shift();
+                    span = this.runSpanGamut(span);
+                    span = "<" + tag + ">" + span + "</" + tag + ">";
+                    text_stack[0] = this.hashPart(span);
+                    if(tag == 'strong') { strong = ''; } else { em = ''; }
+                }
+            } else {
+                // Reached opening three-char emphasis marker. Push on token 
+                // stack; will be handled by the special condition above.
+                em = token.charAt(0);
+                strong = em + em;
+                token_stack.unshift(token);
+                text_stack.unshift('');
+                tree_char_em = true;
+            }
+        } else if (token_len == 2) {
+            if (strong != '') {
+                // Unwind any dangling emphasis marker:
+                if (token_stack[0].length == 1) {
+                    text_stack[1] += token_stack.shift();
+                    text_stack[0] += text_stack.shift();
+                }
+                // Closing strong marker:
+                token_stack.shift();
+                span = text_stack.shift();
+                span = this.runSpanGamut(span);
+                span = "<strong>" + span + "</strong>";
+                text_stack[0] += this.hashPart(span);
+                strong = '';
+            } else {
+                token_stack.unshift(token);
+                text_stack.unshift('');
+                strong = token;
+            }
+        } else {
+            // Here $token_len == 1
+            if (em != '') {
+                if (token_stack[0].length == 1) {
+                    // Closing emphasis marker:
+                    token_stack.shift();
+                    span = text_stack.shift();
+                    span = this.runSpanGamut(span);
+                    span = "<em>" + span + "</em>";
+                    text_stack[0] += this.hashPart(span);
+                    em = '';
+                } else {
+                    text_stack[0] += token;
+                }
+            } else {
+                token_stack.unshift(token);
+                text_stack.unshift('');
+                em = token;
+            }
+        }
+    }
+    return text_stack[0];
 };
 
 
