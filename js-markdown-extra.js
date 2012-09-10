@@ -916,7 +916,6 @@ Markdown_Parser.prototype.doLists = function(text) {
         [marker_ol_re, marker_ul_re]
     ];
 
-    text = this.__wrapSTXETX__(text);
     for (var i = 0; i < markers_relist.length; i++) {
         var marker_re = markers_relist[i][0];
         var other_marker_re = markers_relist[i][1];
@@ -950,6 +949,7 @@ Markdown_Parser.prototype.doLists = function(text) {
         // We use a different prefix before nested lists than top-level lists.
         // See extended comment in _ProcessListItems().
 
+        text = this.__wrapSTXETX__(text);
         if (this.list_level) {
             text = text.replace(new RegExp('^' + whole_list_re, "mg"), _doLists_callback);
         }
@@ -959,8 +959,8 @@ Markdown_Parser.prototype.doLists = function(text) {
                 whole_list_re, "mg"
             ), _doLists_callback);
         }
+        text = this.__unwrapSTXETX__(text);
     }
-    text = this.__unwrapSTXETX__(text);
 
     return text;
 };
@@ -1013,7 +1013,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
         ')' +
         '([\\s\\S]*?)' +						// list item text   = $4
         '(?:(\\n+(?=\\n))|\\n)' +				// tailing blank line = $5
-        '(?=\\n*((?=\\x03)|\\2(' + marker_any_re + ')(?:[ ]+|(?=\\n))))', "gm"
+        '(?=\\n*(\\x03|\\2(' + marker_any_re + ')(?:[ ]+|(?=\\n))))', "gm"
     ), function(match, leading_line, leading_space, marker_space, item, tailing_blank_line) {
         //console.log(match);
         if (leading_line || tailing_blank_line || item.match(/\n{2,}/)) {
@@ -1024,7 +1024,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
         else {
             // Recursion for sub-lists:
             item = self.doLists(self.outdent(item));
-            item = item.replace(/\n+$/, '');
+            item = item.replace(/\n+$/m, '');
             item = self.runSpanGamut(item);
         }
 
@@ -1551,7 +1551,7 @@ Markdown_Parser.prototype.handleSpanToken = function(token, str) {
  * Remove one level of line-leading tabs or spaces
  */
 Markdown_Parser.prototype.outdent = function(text) {
-    return text.replace(new RegExp('^(\\t|[ ]{1,' + this.tab_width + '})', 'm'), '');
+    return text.replace(new RegExp('^(\\t|[ ]{1,' + this.tab_width + '})', 'mg'), '');
 };
 
 
