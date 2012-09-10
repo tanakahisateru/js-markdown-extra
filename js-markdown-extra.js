@@ -955,7 +955,7 @@ Markdown_Parser.prototype.doLists = function(text) {
         }
         else {
             text = text.replace(new RegExp(
-                '(?:(?=\\n)\\n|\\A\\n?)' + // Must eat the newline
+                '(?:(?=\\n)\\n|\\x02\\n?)' + // Must eat the newline
                 whole_list_re, "mg"
             ), _doLists_callback);
         }
@@ -1000,7 +1000,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
 
     // trim trailing blank lines:
     list_str = this.__wrapSTXETX__(list_str);
-    var list_str = list_str.replace(/\n{2,}(?=\\x03)/m, "\n");
+    var list_str = list_str.replace(/\n{2,}(?=\x03)/m, "\n");
     list_str = this.__unwrapSTXETX__(list_str);
 
     var self = this;
@@ -1016,6 +1016,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
         '(?=\\n*(\\x03|\\2(' + marker_any_re + ')(?:[ ]+|(?=\\n))))', "gm"
     ), function(match, leading_line, leading_space, marker_space, item, tailing_blank_line) {
         //console.log(match);
+        //console.log(item, [leading_line ? leading_line.length : 0, tailing_blank_line ? tailing_blank_line.length : 0]);
         if (leading_line || tailing_blank_line || item.match(/\n{2,}/)) {
             // Replace marker with the appropriate whitespace indentation
             item = leading_space + _str_repeat(' ', marker_space.length) + item;
@@ -1295,7 +1296,7 @@ Markdown_Parser.prototype.formParagraphs = function(text) {
     //for(var e = text.length; e > 0 && text.charAt(e - 1) == "\n"; e--) { }
     //text = text.substr(0, e);
 
-    var grafs = text.split(/\n{2,}/);
+    var grafs = text.split(/\n{2,}/m);
     //preg_split('/\n{2,}/', $text, -1, PREG_SPLIT_NO_EMPTY);
 
     //
