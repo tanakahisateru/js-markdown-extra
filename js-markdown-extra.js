@@ -723,8 +723,7 @@ function Markdown(text) {
     
      
     
-    var md_reg_DoHeaders1 = /(^.+?)(?:[ ]+\{#([-_:a-zA-Z0-9]+)\})?[ \t]*\n=+[ \t]*\n+/gm;
-    var md_reg_DoHeaders2 = /(^.+?)(?:[ ]+\{#([-_:a-zA-Z0-9]+)\})?[ \t]*\n-+[ \t]*\n+/gm;
+    var md_reg_DoHeaders1_2 = /(^.+?)(?:[ ]+\{#([-_:a-zA-Z0-9]+)\})?[ \t]*\n([-]+|[=]+)[ \t]*\n+/gm;
     var md_reg_DoHeaders3 = new RegExp(
       '^(#{1,6})'
     + '[ \\t]*'
@@ -735,18 +734,12 @@ function Markdown(text) {
     + '\\n+'
     , "gm" );
     function _DoHeaders( text ) {
-        var reg = md_reg_DoHeaders1;
-        text = text.replace( reg, function( $0, $1, $2 ) {
-                    var str = '<h1';
+        var reg = md_reg_DoHeaders1_2;
+        text = text.replace( reg, function( $0, $1, $2, $3 ) {
+            		var hx = ($3.charAt(0)=='=' ? "h1" : "h2");                    
+                    var str = '<' + hx;
                     str += ( $2 ) ? ' id=\"' + _UnslashQuotes( $2 ) + '\"' : "";
-                    str += ">" + _RunSpanGamut( _UnslashQuotes( $1 ) ) + "</h1>";
-                    return _HashBlock( str ) + "\n\n";
-                } );
-        var reg = md_reg_DoHeaders2;
-        text = text.replace( reg, function( $0, $1, $2 ) {
-                    var str = '<h2';
-                    str += ( $2 ) ? ' id=\"' + _UnslashQuotes( $2 ) + '\"' : "";
-                    str += ">" + _RunSpanGamut( _UnslashQuotes( $1 ) ) + "</h2>";
+                    str += ">" + _RunSpanGamut( _UnslashQuotes( $1 ) ) + "</" + hx + ">";
                     return _HashBlock( str ) + "\n\n";
                 } );
         
@@ -1157,11 +1150,7 @@ function Markdown(text) {
         + '(?=\\S)'
         + '(?!__)'
         + '('
-        + 	'('
-        +		'[^_]+?'
-        +		'|'
-        +		'(?![a-zA-Z0-9])[\\s\\S]?_(?=\\S)(?!_)[\\s\\S]+?(?=\\S)[\\s\\S]_(?![a-zA-Z0-9])'
-        +	')+?'
+        + 	'[\\s\\S]+?'
         + ')'
         + '__'
         + '(?!\\w)'
