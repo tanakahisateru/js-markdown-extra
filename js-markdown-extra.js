@@ -1612,10 +1612,10 @@ function MarkdownExtra_Parser() {
     this.fn_backlink_class = MARKDOWN_FN_BACKLINK_CLASS;
 
     // Predefined abbreviations.
-    this.predef_abbr = [];
+    this.predef_abbr = {};
 
     // Extra variables used during extra transformations.
-    this.footnotes = [];
+    this.footnotes = {};
     this.footnotes_ordered = [];
     this.abbr_desciptions = {};
     this.abbr_word_re = '';
@@ -1685,7 +1685,7 @@ MarkdownExtra_Parser.prototype = new Markdown_Parser();
 MarkdownExtra_Parser.prototype.setup = function() {
     this.constructor.prototype.setup.call(this);
 
-    this.footnotes = [];
+    this.footnotes = {};
     this.footnotes_ordered = [];
     this.abbr_desciptions = {};
     this.abbr_word_re = '';
@@ -1705,11 +1705,212 @@ MarkdownExtra_Parser.prototype.setup = function() {
  * Clearing Extra-specific variables.
  */
 MarkdownExtra_Parser.prototype.teardown = function() {
-    this.footnotes = [];
+    this.footnotes = {};
     this.footnotes_ordered = [];
     this.abbr_desciptions = {};
     this.abbr_word_re = '';
 
     this.constructor.prototype.teardown.call(this);
 };
+
+
+
+
+
+
+
+
+// ### Footnotes
+
+/**
+ * Strips link definitions from text, stores the URLs and titles in
+ * hash references.
+ */
+MarkdownExtra_Parser.prototype.stripFootnotes = function(text) {
+    var self = this;
+
+    var less_than_tab = this.tab_width - 1;
+
+    // Link defs are in the form: [^id]: url "optional title"
+    text = text.replace(new RegExp(
+        '^[ ]{0,' + less_than_tab + '}\\[\\^(.+?)\\][ ]?:' +	// note_id = $1
+          '[ ]*' +
+          '\\n?' +					// maybe *one* newline
+        '(' +						// text = $2 (no blank lines allowed)
+            '(?:' +
+                '.+' +				// actual text
+            '|' +
+                '\\n' +				// newlines but 
+                '(?!\\[\\^.+?\\]:\\s)' + // negative lookahead for footnote marker.
+                '(?!\\n+[ ]{0,3}\\S)' + // ensure line is not blank and followed 
+                                // by non-indented content
+            ')*' +
+        ')', "mg"
+    ), function(match, m1, m2) {
+        var note_id = self.fn_id_prefix + m1;
+        self.footnotes[note_id] = self.outdent(m2);
+        return ''; //# String that will replace the block
+    });
+    return text;
+};
+
+/**
+ * Replace footnote references in $text [^id] with a special text-token 
+ * which will be replaced by the actual footnote marker in appendFootnotes.
+ */
+MarkdownExtra_Parser.prototype.doFootnotes = function(text) {
+    if (!this.in_anchor) {
+        text = text.replace(/\[\^(.+?)\]/g, "F\x1Afn:$1\x1A:");
+    }
+    return text;
+};
+
+/**
+ * Append footnote list to text.
+ */
+MarkdownExtra_Parser.prototype.appendFootnotes = function(text) {
+    var self = this;
+
+    var _appendFootnotes_callback = function(match, m1) {
+        var node_id = self.fn_id_prefix + m1;
+
+        // Create footnote marker only if it has a corresponding footnote *and*
+        // the footnote hasn't been used by another marker.
+        if (node_id in self.footnotes) {
+            // Transfert footnote content to the ordered list.
+            self.footnotes_ordered.push([node_id, self.footnotes[node_id]]);
+            delete self.footnotes[node_id];
+
+            var num = self.footnote_counter++;
+            var attr = " rel=\"footnote\"";
+            if (self.fn_link_class != "") {
+                var classname = self.fn_link_class;
+                classname = self.encodeAttribute(classname);
+                attr += " class=\"" + classname + "\"";
+            }
+            if (self.fn_link_title != "") {
+                var title = self.fn_link_title;
+                $title = self.encodeAttribute(title);
+                attr += " title=\"" + title +"\"";
+            }
+
+            attr = attr.replace(/%%/g, num);
+            node_id = self.encodeAttribute(node_id);
+
+            return "<sup id=\"fnref:" + node_id + "\">" +
+                "<a href=\"#fn:" + node_id + "\"" + attr + ">" + num + "</a>" +
+                "</sup>";
+        }
+
+        return "[^" + m1 + "]";
+    };
+
+    text = text.replace(/F\x1Afn:(.*?)\x1A:/g, _appendFootnotes_callback);
+
+    if (this.footnotes_ordered.length > 0) {
+        text += "\n\n";
+        text += "<div class=\"footnotes\">\n";
+        text += "<hr" + this.empty_element_suffix  + "\n";
+        text += "<ol>\n\n";
+
+        var attr = " rev=\"footnote\"";
+        if (this.fn_backlink_class != "") {
+            var classname = this.fn_backlink_class;
+            classname = this.encodeAttribute(classname);
+            attr += " class=\"" + classname + "\"";
+        }
+        if (this.fn_backlink_title != "") {
+            var title = this.fn_backlink_title;
+            title = this.encodeAttribute(title);
+            attr += " title=\"" + title + "\"";
+        }
+        var num = 0;
+
+        while (this.footnotes_ordered.length > 0) {
+            var head = this.footnotes_ordered.shift();
+            var note_id = head[0];
+            var footnote = head[1];
+
+            footnote += "\n"; // Need to append newline before parsing.
+            footnote = this.runBlockGamut(footnote + "\n");
+            footnote = footnote.replace(/F\x1Afn:(.*?)\x1A:/g, _appendFootnotes_callback);
+
+            attr = attr.replace(/%%/g, ++num);
+            note_id = this.encodeAttribute(note_id);
+
+            // Add backlink to last paragraph; create new paragraph if needed.
+            var backlink = "<a href=\"#fnref:" + note_id + "\"" + attr + ">&#8617;</a>";
+            if (footnote.match(/<\/p>$/)) {
+                footnote = footnote.substr(0, footnote.length - 4) + "&#160;" + backlink + "</p>";
+            } else {
+                footnote += "\n\n<p>" + backlink + "</p>";
+            }
+
+            text += "<li id=\"fn:" + note_id + "\">\n";
+            text += footnote + "\n";
+            text += "</li>\n\n";
+        }
+
+        text += "</ol>\n";
+        text += "</div>";
+    }
+    return text;
+};
+
+//### Abbreviations ###
+
+/**
+ * Strips abbreviations from text, stores titles in hash references.
+ */
+MarkdownExtra_Parser.prototype.stripAbbreviations = function(text) {
+    var self = this;
+
+    var less_than_tab = this.tab_width - 1;
+
+    // Link defs are in the form: [id]*: url "optional title"
+    text = text.replace(new RegExp(
+        '^[ ]{0,' + less_than_tab + '}\\*\\[(.+?)\\][ ]?:' +	// abbr_id = $1
+        '(.*)',					// text = $2 (no blank lines allowed)
+        "m"
+    ), function(match, abbr_word, abbr_desc) {
+        if (self.abbr_word_re != '') {
+            self.abbr_word_re += '|';
+        }
+        self.abbr_word_re += _preg_quote(abbr_word);
+        self.abbr_desciptions[abbr_word] = _trim(abbr_desc);
+        return ''; // String that will replace the block
+    });
+    return text;
+};
+
+/**
+ * Find defined abbreviations in text and wrap them in <abbr> elements.
+ */
+MarkdownExtra_Parser.prototype.doAbbreviations = function(text) {
+    var self = this;
+
+    if (this.abbr_word_re) {
+        // cannot use the /x modifier because abbr_word_re may 
+        // contain significant spaces:
+        text = text.replace(new RegExp(
+            '(^|[^\\w\\x1A])' +
+            '(' + this.abbr_word_re + ')' +
+            '(?![\\w\\x1A])'
+        ), function(match, prev, abbr) {
+            if (abbr in self.abbr_desciptions) {
+                var desc = self.abbr_desciptions[abbr];
+                if (!desc || desc == "") {
+                    return self.hashPart("<abbr>" + abbr + "</abbr>");
+                } else {
+                    var desc = self.encodeAttribute(desc);
+                    return self.hashPart("<abbr title=\"" + desc + "\">" + abbr + "</abbr>");
+                }
+            } else {
+                return match;
+            }
+        });
+    }
+    return text;
+};
+
 
