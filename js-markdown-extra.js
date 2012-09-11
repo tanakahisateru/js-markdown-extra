@@ -1714,9 +1714,50 @@ MarkdownExtra_Parser.prototype.teardown = function() {
 };
 
 
+/**
+ * Params:
+ * $text - string to process with html <p> tags
+ */
+Markdown_Parser.prototype.formParagraphs = function(text) {
 
+    // Strip leading and trailing lines:
+    text = this.__wrapSTXETX__(text);
+    text = text.replace(/(?:\x02)\n+|\n+(?:\x03)/g, "");
+    text = this.__unwrapSTXETX__(text);
 
+    var grafs = text.split(/\n{2,}/m);
+    //preg_split('/\n{2,}/', $text, -1, PREG_SPLIT_NO_EMPTY);
 
+    //
+    // Wrap <p> tags and unhashify HTML blocks
+    //
+    for(var i = 0; i < grafs.length; i++) {
+        var value = grafs[i];
+        if(value == "") {
+            // [porting note]
+            // This case is replacement for PREG_SPLIT_NO_EMPTY.
+            continue;
+        }
+        value = _trim(this.runSpanGamut(value));
+
+        // Check if this should be enclosed in a paragraph.
+        // Clean tag hashes & block tag hashes are left alone.
+        var is_p = !value.match(/^B\x1A[0-9]+B|^C\x1A[0-9]+C$/);
+
+        if (is_p) {
+            value = "<p>" + value + "</p>";
+        }
+        grafs[i] = value;
+    }
+
+    // Join grafs in one text, then unhash HTML tags. 
+    text = grafs.join("\n\n");
+
+    // Finish by removing any tag hashes still present in $text.
+    text = this.unhash(text);
+
+    return text;
+}
 
 
 
