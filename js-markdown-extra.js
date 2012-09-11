@@ -1714,6 +1714,51 @@ MarkdownExtra_Parser.prototype.teardown = function() {
 };
 
 
+
+
+/**
+ * Adding the fenced code block syntax to regular Markdown:
+ *
+ * ~~~
+ * Code block
+ * ~~~
+ */
+MarkdownExtra_Parser.prototype.doFencedCodeBlocks = function(text) {
+    var self = this;
+
+    var less_than_tab = this.tab_width;
+
+    text = this.__wrapSTXETX__(text);
+    text = text.replace(new RegExp(
+        '(?:\\n|\\x02)' +
+        // 1: Opening marker
+        '(' +
+            '~{3,}' + // Marker: three tilde or more.
+        ')' +
+        '[ ]*\\n' + // Whitespace and newline following marker.
+        // 2: Content
+        '(' +
+            '[\\s\\S]*\\n'+
+            // [incompatible] '(?>' +
+            // [incompatible]     '(?!\\1[ ]*\\n)' +	// Not a closing marker.
+            // [incompatible]     '.*\\n+' +
+            // [incompatible] ')+' +
+        ')' +
+        // Closing marker.
+        '\\1[ ]*\\n', "mg"
+    ), function(match, m1, codeblock) {
+        codeblock = _htmlspecialchars_ENT_NOQUOTES(codeblock);
+        codeblock = codeblock.replace(/^\n+/, function(match) {
+            return _str_repeat("<br" + self.empty_element_suffix, match.length);
+        });
+        codeblock = "<pre><code>" + codeblock + "</code></pre>";
+        return "\n\n" + self.hashBlock(codeblock) + "\n\n";
+    });
+    text = this.__unwrapSTXETX__(text);
+
+    return text;
+}
+
 /**
  * Params:
  * $text - string to process with html <p> tags
