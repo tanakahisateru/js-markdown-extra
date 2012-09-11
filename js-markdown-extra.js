@@ -49,7 +49,7 @@ var MARKDOWN_WP_POSTS    = true;
 var MARKDOWN_WP_COMMENTS = true;
 
 /** Standard Function Interface */
-MARKDOWN_PARSER_CLASS = 'Markdown_Parser';
+MARKDOWN_PARSER_CLASS = 'MarkdownExtra_Parser';
 
 /**
  * Converts Markdown formatted text to HTML.
@@ -171,7 +171,7 @@ function Markdown_Parser() {
 
 Markdown_Parser.prototype.init = function() {
     // this._initDetab(); // NOTE: JavaScript string length is already based on Unicode
-    this.prepareItalicsAndBold(); // NOTE: JavaScript can't use backword reading in regexp
+    this.prepareItalicsAndBold();
 
     // Regex to match balanced [brackets].
     // Needed to insert a maximum bracked depth while converting to PHP.
@@ -1599,6 +1599,7 @@ Markdown_Parser.prototype.unhash = function(text) {
  * Constructor function. Initialize the parser object.
  */
 function MarkdownExtra_Parser() {
+
     // Prefix for footnote ids.
     this.fn_id_prefix = "";
 
@@ -1642,27 +1643,22 @@ function MarkdownExtra_Parser() {
 
     // Redefining emphasis markers so that emphasis by underscore does not
     // work in the middle of a word.
-    /*
     this.em_relist = [
-        ['' , /(?:(?<!\*)\*(?!\*)|(?<![a-zA-Z0-9_])_(?!_))(?=\S|$)(?![\.,:;]\s)/],
-        ['*', /(?<=\S|^)(?<!\*)\*(?!\*)/],
-        ['_', /(?<=\S|^)(?<!_)_(?![a-zA-Z0-9_])/]
+        ['' , '(?:(^|[^\\*])(\\*)(?=[^\\*])|(^|[^a-zA-Z0-9_])(_)(?=[^_]))(?=\\S|$)(?![\\.,:;]\\s)'],
+        ['*', '((?:\\S|^)[^\\*])(\\*)(?!\\*)'],
+        ['_', '((?:\\S|^)[^_])(_)(?![a-zA-Z0-9_])']
     ];
     this.strong_relist = [
-        [''  , /(?:(?<!\*)\*\*(?!\*)|(?<![a-zA-Z0-9_])__(?!_))(?=\S|$)(?![\.,:;]\s)/],
-        ['**', /(?<=\S|^)(?<!\*)\*\*(?!\*)/],
-        ['__', /(?<=\S|^)(?<!_)__(?![a-zA-Z0-9_])/]
+        ['' , '(?:(^|[^\\*])(\\*\\*)(?=[^\\*])|(^|[^a-zA-Z0-9_])(__)(?=[^_]))(?=\\S|$)(?![\\.,:;]\\s)'],
+        ['**', '((?:\\S|^)[^\\*])(\\*\\*)(?!\\*)'],
+        ['__', '((?:\\S|^)[^_])(__)(?![a-zA-Z0-9_])']
     ];
     this.em_strong_relist = [
-        [''   , /(?:(?<!\*)\*\*\*(?!\*)|(?<![a-zA-Z0-9_])___(?!_))(?=\S|$)(?![\.,:;]\s)/],
-        ['***', /(?<=\S|^)(?<!\*)\*\*\*(?!\*)/],
-        ['___', /(?<=\S|^)(?<!_)___(?![a-zA-Z0-9_])/]
+        ['' , '(?:(^|[^\\*])(\\*\\*\\*)(?=[^\\*])|(^|[^a-zA-Z0-9_])(___)(?=[^_]))(?=\\S|$)(?![\\.,:;]\\s)'],
+        ['***', '((?:\\S|^)[^\\*])(\\*\\*\\*)(?!\\*)'],
+        ['___', '((?:\\S|^)[^_])(___)(?![a-zA-Z0-9_])']
     ];
-    */
-}
-MarkdownExtra_Parser.prototype = new Markdown_Parser();
 
-MarkdownExtra_Parser.prototype.init = function() {
     // Add extra escapable characters before parent constructor 
     // initialize the table.
     this.escape_chars += ':|';
@@ -1680,9 +1676,8 @@ MarkdownExtra_Parser.prototype.init = function() {
 
     this.span_gamut.push(['doFootnotes',      5]);
     this.span_gamut.push(['doAbbreviations', 70]);
-
-    this.constructor.prototype.init.call(this);
-};
+}
+MarkdownExtra_Parser.prototype = new Markdown_Parser();
 
 /**
  * Setting up Extra-specific variables.
