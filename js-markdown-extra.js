@@ -74,7 +74,7 @@ function Markdown($text) {
 /**
  *
  */
-function _preg_quot(text) {
+function _preg_quote(text) {
   if(!arguments.callee.sRE) {
     arguments.callee.sRE = /(\/|\.|\*|\+|\?|\||\(|\)|\[|\]|\{|\}\\)/g;
   }
@@ -195,7 +195,7 @@ Markdown_Parser.prototype.init = function() {
     // Table of hash values for escaped characters:
     var tmp = []
     for(var i = 0; i < this.escape_chars.length; i++) {
-        tmp.push(_preg_quot(this.escape_chars.charAt(i)));
+        tmp.push(_preg_quote(this.escape_chars.charAt(i)));
     }
     this.escape_chars_re = new RegExp('[' + tmp.join('') + ']');
 
@@ -1537,7 +1537,7 @@ Markdown_Parser.prototype.handleSpanToken = function(token, str) {
             return [this.hashPart("&#" + token.charCodeAt(1) + ";"), str];
         case "`":
             // Search for end marker in remaining text.
-            if (str.match(new RegExp('^(.*?[^`])' + _preg_quot(token) + '(?!`)(.*)$', 'm'))) {
+            if (str.match(new RegExp('^(.*?[^`])' + _preg_quote(token) + '(?!`)(.*)$', 'm'))) {
                 str = RegExp.$2;
                 var codespan = this.makeCodeSpan(RegExp.$1);
                 return [this.hashPart(codespan), str];
