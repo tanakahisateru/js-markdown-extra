@@ -1713,6 +1713,140 @@ MarkdownExtra_Parser.prototype.teardown = function() {
     this.constructor.prototype.teardown.call(this);
 };
 
+/**
+ * Form HTML tables.
+ */
+MarkdownExtra_Parser.prototype.doTables = function(text) {
+    var self = this;
+
+    var less_than_tab = this.tab_width - 1;
+
+    var _doTable_callback = function(match, head, underline, content) {
+        //console.log(match);
+        // Remove any tailing pipes for each line.
+        head = head.replace(/[|] *$/m, '');
+        underline = underline.replace(/[|] *$/m, '');
+        content = content.replace(/[|] *$/m, '');
+
+        var attr = [];
+
+        // Reading alignement from header underline.
+        var separators = underline.split(/[ ]*[|][ ]*/);
+        for(var n = 0; n < separators.length; n++) {
+            var s = separators[n];
+            if (s.match(/^ *-+: *$/))       { attr[n] = ' align="right"'; }
+            else if (s.match(/^ *:-+: *$/)) { attr[n] = ' align="center"'; }
+            else if (s.match(/^ *:-+ *$/))  { attr[n] = ' align="left"'; }
+            else                            { attr[n] = ''; }
+        }
+
+        // Parsing span elements, including code spans, character escapes, 
+        // and inline HTML tags, so that pipes inside those gets ignored.
+        head = self.parseSpan(head);
+        var headers = head.split(/ *[|] */);
+        var col_count = headers.length;
+
+        // Write column headers.
+        var text = "<table>\n";
+        text += "<thead>\n";
+        text += "<tr>\n";
+        for(var n = 0; n < headers.length; n++) {
+            var header = headers[n];
+            text += "  <th" + attr[n] + ">" + self.runSpanGamut(_trim(header)) + "</th>\n";
+        }
+        text += "</tr>\n";
+        text += "</thead>\n";
+
+        // Split content by row.
+        var rows = _trim(content, "\n").split("\n");
+
+        text += "<tbody>\n";
+        for(var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            // Parsing span elements, including code spans, character escapes, 
+            // and inline HTML tags, so that pipes inside those gets ignored.
+            row = self.parseSpan(row);
+
+            // Split row by cell.
+            var row_cells = row.split(/ *[|] */, col_count);
+            while(row_cells.length < col_count) { row_cells.push(''); }
+
+            text += "<tr>\n";
+            for(var n = 0; n < row_cells.length; n++) {
+                var cell = row_cells[i];
+                text += "  <td" + attr[n] + ">" + self.runSpanGamut(_trim(cell)) + "</td>\n";
+            }
+            text += "</tr>\n";
+        }
+        text += "</tbody>\n";
+        text += "</table>";
+
+        return self.hashBlock(text) + "\n";
+    }
+
+    text = this.__wrapSTXETX__(text);
+
+    //
+    // Find tables with leading pipe.
+    //
+    //	| Header 1 | Header 2
+    //	| -------- | --------
+    //	| Cell 1   | Cell 2
+    //	| Cell 3   | Cell 4
+    //
+    text = text.replace(new RegExp(
+        '^' +							// Start of a line
+        '[ ]{0,' + less_than_tab + '}' +	// Allowed whitespace.
+        '[|]' +							// Optional leading pipe (present)
+        '(.+)\\n' +						// $1: Header row (at least one pipe)
+
+        '[ ]{0,' + less_than_tab + '}' +	// Allowed whitespace.
+        '[|]([ ]*[-:]+[-| :]*)\\n' +	// $2: Header underline
+
+        '(' +							// $3: Cells
+            '(?:' +
+                '[ ]*' +				// Allowed whitespace.
+                '[|].*\\n' +			// Row content.
+            ')*' +
+        ')' +
+        '(?=\\n|\\x03)',					// Stop at final double newline.
+        'mg'
+    ), function(match, head, underline, content) {
+        // Remove leading pipe for each row.
+        content = content.replace(/^ *[|]/m, '');
+
+        return _doTable_callback.call(this, match, head, underline, content);
+    });
+
+    //
+    // Find tables without leading pipe.
+    //
+    //	Header 1 | Header 2
+    //	-------- | --------
+    //	Cell 1   | Cell 2
+    //	Cell 3   | Cell 4
+    //
+    text = text.replace(new RegExp(
+        '^' +							// Start of a line
+        '[ ]{0,' + less_than_tab + '}' +	// Allowed whitespace.
+        '(\\S.*[|].*)\\n' +				// $1: Header row (at least one pipe)
+
+        '[ ]{0,' + less_than_tab + '}' +	// Allowed whitespace.
+        '([-:]+[ ]*[|][-| :]*)\\n' +	// $2: Header underline
+
+        '(' +							// $3: Cells
+            '(?:' +
+                '.*[|].*\\n' +		// Row content
+            ')*' +
+        ')' +
+        '(?=\\n|\\x03)',					// Stop at final double newline.
+        'mg'
+    ), _doTable_callback);
+
+    text = this.__unwrapSTXETX__(text);
+
+    return text;
+}
 
 /**
  * Form HTML definition lists.
