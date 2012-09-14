@@ -1773,7 +1773,7 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
 
             text += "<tr>\n";
             for(var n = 0; n < row_cells.length; n++) {
-                var cell = row_cells[i];
+                var cell = row_cells[n];
                 text += "  <td" + attr[n] + ">" + self.runSpanGamut(_trim(cell)) + "</td>\n";
             }
             text += "</tr>\n";
