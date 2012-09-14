@@ -1714,7 +1714,133 @@ MarkdownExtra_Parser.prototype.teardown = function() {
 };
 
 
+/**
+ * Form HTML definition lists.
+ */
+MarkdownExtra_Parser.prototype.doDefLists = function(text) {
+    var self = this;
 
+    var less_than_tab = this.tab_width - 1;
+
+    // Re-usable pattern to match any entire dl list:
+    var whole_list_re = '(?:' +
+        '(' +								// $1 = whole list
+          '(' +								// $2
+            '[ ]{0,' + less_than_tab + '}' +
+            '((?:.*\\S.*\\n)+)' +				// $3 = defined term
+            '\\n?' +
+            '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
+          ')' +
+          '([\\s\\S]+?)' +
+          '(' +								// $4
+              '(?=\\0x03)' + // \z
+            '|' +
+              '\\n{2,}' +
+              '(?=\\S)' +
+              '(?!' +						// Negative lookahead for another term
+                '[ ]{0,' + less_than_tab + '}' +
+                '(?:\\S.*\\n )+?' +			// defined term
+                '\\n?' +
+                '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
+              ')' +
+              '(?!' +						// Negative lookahead for another definition
+                '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
+              ')' +
+          ')' +
+        ')' +
+    ')'; // mx
+
+    text = this.__wrapSTXETX__(text);
+    text = text.replace(new RegExp(
+        '(\\x02\\n?|\\n\\n)' +
+        whole_list_re, 'mg'
+    ), function(match, pre, list) {
+        //console.log(match);
+        // Re-usable patterns to match list item bullets and number markers:
+        // [portiong note] changed to list = $2 in order to reserve previously \n\n.
+
+        // Turn double returns into triple returns, so that we can make a
+        // paragraph for the last item in a list, if necessary:
+        var result = _trim(self.processDefListItems(list));
+        result = "<dl>\n" + result + "\n</dl>";
+        return pre + self.hashBlock(result) + "\n\n";
+    });
+    text = this.__unwrapSTXETX__(text);
+
+    return text;
+}
+
+/**
+ * Process the contents of a single definition list, splitting it
+ * into individual term and definition list items.
+ */
+MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
+    var self = this;
+
+    less_than_tab = this.tab_width - 1;
+
+    list_str = this.__wrapSTXETX__(list_str);
+
+    // trim trailing blank lines:
+    list_str = list_str.replace(/\n{2,}(?=\\x03)/, "\n");
+
+    // Process definition terms.
+    list_str = list_str.replace(new RegExp(
+        '(\\x02\\n?|\\n\\n+)' +					// leading line
+        '(' +								// definition terms = $1
+            '[ ]{0,' + less_than_tab + '}' + // leading whitespace
+            '(?![:][ ]|[ ])' +				// negative lookahead for a definition 
+                                        //   mark (colon) or more whitespace.
+            '(?:\\S.*\\n)+?' +				// actual term (not whitespace).
+        ')' +			
+        '(?=\\n?[ ]{0,3}:[ ])',				// lookahead for following line feed 
+                                        //   with a definition mark.
+        'mg'
+    ), function(match, pre, terms_str) {
+        // [portiong note] changed to list = $2 in order to reserve previously \n\n.
+        var terms = _trim(terms_str).split("\n");
+        var text = '';
+        for (var i = 0; i < terms.length; i++) {
+            var term = terms[i];
+            term = self.runSpanGamut(_trim(term));
+            text += "\n<dt>" + term + "</dt>";
+        }
+        return text + "\n";
+    });
+
+    // Process actual definitions.
+    list_str = list_str.replace(new RegExp(
+        '\\n(\\n+)?' +						// leading line = $1
+        '(' +								// marker space = $2
+            '[ ]{0,' + less_than_tab + '}' +	// whitespace before colon
+            '[:][ ]+' +						// definition mark (colon)
+        ')' +
+        '([\\s\\S]+?)' +						// definition text = $3
+        '(?=\\n+' + 						// stop at next definition mark,
+            '(?:' +							// next term or end of text
+                '[ ]{0,' + less_than_tab + '}[:][ ]|' +
+                '<dt>|\\x03' + // \z
+            ')' +
+        ')', 'mg'
+    ), function(match, leading_line, marker_space, def) {
+        if (leading_line || def.match(/\n{2,}/)) {
+            // Replace marker with the appropriate whitespace indentation
+            def = _str_repeat(' ', marker_space.length) + def;
+            def = self.runBlockGamut(self.outdent(def + "\n\n"));
+            def = "\n" + def + "\n";
+        }
+        else {
+            def = _rtrim(def);
+            def = self.runSpanGamut(self.outdent(def));
+        }
+
+        return "\n<dd>"  + def + "</dd>\n";
+    });
+
+    list_str = this.__unwrapSTXETX__(list_str);
+
+    return list_str;
+}
 
 /**
  * Adding the fenced code block syntax to regular Markdown:
