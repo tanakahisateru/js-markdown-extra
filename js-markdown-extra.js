@@ -371,7 +371,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
         )                          + // end of opening tag
         '.*?'                      + // last level nested tag content
         _str_repeat(
-                   '</\\2\\s*>'     + // closing nested tag
+                   '</\\2\\s*>'    + // closing nested tag
                 ')'                +
                 '|'                +
                     '<(?!/\\2\\s*>)' + // other tags with a different name
@@ -393,62 +393,62 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
     // We need to do this before the next, more liberal match, because the next
     // match will start at the first `<div>` and stop at the first `</div>`.
     var all = new RegExp('(?:' +
-        '(?:' +
-            '(?:\\n\\n)' +		// Starting after a blank line
-            '|' +				// or
-            '(?:\\x02)\\n?' +		// the beginning of the doc
-        ')' +
-        '(' +						// save in $1
+        '(?:'                  +
+            '(?:\\n\\n)'       + // Starting after a blank line
+            '|'                + // or
+            '(?:\\x02)\\n?'    + // the beginning of the doc
+        ')'                    +
+        '('                    + // save in $1
 
         // Match from `\n<tag>` to `</tag>\n`, handling nested tags 
         // in between.
             '[ ]{0,' + less_than_tab + '}' +
-            '<(' + block_tags_b_re + ')' + // start tag = $2
-            attr + '>' +			// attributes followed by > and \n
-            content +		// content, support nesting
-            '</\\2>' +				// the matching end tag
-            '[ ]*' +				 // trailing spaces/tabs
-            '(?=\\n+|\\n*\\x03)' +	// followed by a newline or end of document
+            '<(' + block_tags_b_re + ')'   + // start tag = $2
+            attr + '>'                     + // attributes followed by > and \n
+            content                        + // content, support nesting
+            '</\\2>'                       + // the matching end tag
+            '[ ]*'                         + // trailing spaces/tabs
+            '(?=\\n+|\\n*\\x03)'           + // followed by a newline or end of document
 
         '|' + // Special version for tags of group a.
 
             '[ ]{0,' + less_than_tab + '}' +
-            '<(' + block_tags_a_re + ')' + // start tag = $3
-            attr + '>[ ]*\\n' +	// attributes followed by >
-            content2 + 		// content, support nesting
-            '</\\3>' +				// the matching end tag
-            '[ ]*' +				// trailing spaces/tabs
-            '(?=\\n+|\\n*\\x03)' +	// followed by a newline or end of document
+            '<(' + block_tags_a_re + ')'   + // start tag = $3
+            attr + '>[ ]*\\n'              + // attributes followed by >
+            content2                       + // content, support nesting
+            '</\\3>'                       + // the matching end tag
+            '[ ]*'                         + // trailing spaces/tabs
+            '(?=\\n+|\\n*\\x03)'           + // followed by a newline or end of document
 
         '|' + // Special case just for <hr />. It was easier to make a special 
               // case than to make the other regex more complicated.
 
             '[ ]{0,' + less_than_tab + '}' +
-            '<(hr)' +				// start tag = $2
-            attr+			// attributes
-            '/?>' +					// the matching end tag
-            '[ ]*' +
-            '(?=\\n{2,}|\\n*\\x03)' +		// followed by a blank line or end of document
+            '<(hr)'                        +  // start tag = $2
+            attr                           + // attributes
+            '/?>'                          + // the matching end tag
+            '[ ]*'                         +
+            '(?=\\n{2,}|\\n*\\x03)'        + // followed by a blank line or end of document
 
         '|' + // Special case for standalone HTML comments:
 
             '[ ]{0,' + less_than_tab + '}' +
-            '(?:' + //'(?s:' +
-                '<!-- .*? -->' +
-            ')' +
-            '[ ]*' +
-            '(?=\\n{2,}|\\n*\\x03)' +		// followed by a blank line or end of document
+            '(?:'                          + //'(?s:' +
+                '<!--.*?-->'               +
+            ')'                            +
+            '[ ]*'                         +
+            '(?=\\n{2,}|\\n*\\x03)'        + // followed by a blank line or end of document
 
         '|' + // PHP and ASP-style processor instructions (<? and <%)
 
             '[ ]{0,' + less_than_tab + '}' +
-            '(?:' + //'(?s:' +
-                '<([?%])' +			// $2
-                '.*?' +
-                '\\2>' +
-            ')' +
-            '[ ]*' +
-            '(?=\\n{2,}|\\n*\\x03)' +		// followed by a blank line or end of document
+            '(?:'                          + //'(?s:' +
+                '<([?%])'                  + // $2
+                '.*?'                      +
+                '\\2>'                     +
+            ')'                            +
+            '[ ]*'                         +
+            '(?=\\n{2,}|\\n*\\x03)'        + // followed by a blank line or end of document
 
         ')' +
     ')', 'mig');
@@ -510,24 +510,24 @@ Markdown_Parser.prototype.stripLinkDefinitions = function(text) {
     text = this.__wrapSTXETX__(text);
     text = text.replace(new RegExp(
         '^[ ]{0,' + less_than_tab + '}\\[(.+)\\][ ]?:' + // id = $1
-            '[ ]*'+
-                '\\n?' + // maybe *one* newline
-                '[ ]*' +
-            '(?:' +
+            '[ ]*'        +
+                '\\n?'    + // maybe *one* newline
+                '[ ]*'    +
+            '(?:'         +
                 '<(.+?)>' + // url = $2
-            '|' +
-                '(\\S+?)' +			// url = $3
-            ')' +
-            '[ ]*' +
-            '\\n?' +				// maybe one newline
-            '[ ]*' +
-            '(?:' +
-                //'(?=\\s)' +			// lookbehind for whitespace
-                '["\\(]' +
-                '(.*?)' +			// title = $4
-                '["\\)]' +
-                '[ ]*' +
-            ')?' +	// title is optional
+            '|'           +
+                '(\\S+?)' + // url = $3
+            ')'           +
+            '[ ]*'        +
+            '\\n?'        + // maybe one newline
+            '[ ]*'        +
+            '(?:'         +
+                //'(?=\\s)' + // lookbehind for whitespace
+                '["\\(]'  +
+                '(.*?)'   + // title = $4
+                '["\\)]'  +
+                '[ ]*'    +
+            ')?'          + // title is optional
             '(?:\\n+|\\n*(?=\\x03))',
         'mg'), function(match, id, url2, url3, title) {
             //console.log(match);
@@ -582,10 +582,10 @@ Markdown_Parser.prototype.doHorizontalRules = function(text) {
     var self = this;
     return text.replace(new RegExp(
         '^[ ]{0,3}'    + // Leading space
-        '([-\\*_])'      + // $1: First marker
+        '([-\\*_])'    + // $1: First marker
         '(?:'          + // Repeated marker group
             '[ ]{0,2}' + // Zero, one, or two spaces.
-            '\\1'       + // Marker character
+            '\\1'      + // Marker character
         '){2,}'        + // Group repeated at least twice
         '[ ]*'         + //Tailing spaces
         '$'            , // End of line.
@@ -669,17 +669,17 @@ Markdown_Parser.prototype.doAnchors = function(text) {
     // First, handle reference-style links: [link text] [id]
     //
     text = text.replace(new RegExp(
-        '(' +					// wrap whole match in $1
-          '\\[' +
+        '('               + // wrap whole match in $1
+          '\\['           +
             '(' + this.nested_brackets_re + ')' +  // link text = $2
-          '\\]' +
+          '\\]'           +
 
-          '[ ]?' +				// one optional space
-          '(?:\\n[ ]*)?' +		// one optional newline followed by spaces
+          '[ ]?'          + // one optional space
+          '(?:\\n[ ]*)?'  + // one optional newline followed by spaces
 
-          '\\[' +
-            '(.*?)' +		// id = $3
-          '\\]' +
+          '\\['           +
+            '(.*?)'       + // id = $3
+          '\\]'           +
         ')'), _doAnchors_reference_callback
     );
 
@@ -687,25 +687,25 @@ Markdown_Parser.prototype.doAnchors = function(text) {
     // Next, inline-style links: [link text](url "optional title")
     //
     text = text.replace(new RegExp(
-        '(' +				// wrap whole match in $1
-          '\\[' +
-            '(' + this.nested_brackets_re + ')' +	// link text = $2
-          '\\]' +
-          '\\(' +			// literal paren
-            '[ \\n]*' +
-            '(?:' +
-                '<(.+?)>' +	// href = $3
-            '|' +
-                '(' + this.nested_url_parenthesis_re + ')' +	// href = $4
-            ')' +
-            '[ \\n]*' +
-            '(' +			// $5
-              '([\'"])' +	// quote char = $6
-              '(.*?)' +		// Title = $7
-              '\\6' +		// matching quote
-              '[ \\n]*' +	// ignore any spaces/tabs between closing quote and )
-            ')?' +			// title is optional
-          '\\)' +
+        '('               + // wrap whole match in $1
+          '\\['           +
+            '(' + this.nested_brackets_re + ')' + // link text = $2
+          '\\]'           +
+          '\\('           + // literal paren
+            '[ \\n]*'     +
+            '(?:'         +
+                '<(.+?)>' + // href = $3
+            '|'           +
+                '(' + this.nested_url_parenthesis_re + ')' + // href = $4
+            ')'           +
+            '[ \\n]*'     +
+            '('           + // $5
+              '([\'"])'   + // quote char = $6
+              '(.*?)'     + // Title = $7
+              '\\6'       + // matching quote
+              '[ \\n]*'   + // ignore any spaces/tabs between closing quote and )
+            ')?'          + // title is optional
+          '\\)'           +
         ')'), function(match, whole_match, link_text, url3, url4, x0, x1, title) {
             //console.log(match);
             link_text = self.runSpanGamut(link_text);
@@ -732,10 +732,10 @@ Markdown_Parser.prototype.doAnchors = function(text) {
     // or [link text](/foo)
     //
     text = text.replace(new RegExp(
-        '(' +					//# wrap whole match in $1
-          '\\[' +
-            ' +([^\\[\\]]+)' +		//# link text = $2; can\'t contain [ or ]
-          ' +\\]' +
+        '('                  + // wrap whole match in $1
+          '\\['              +
+            ' +([^\\[\\]]+)' + // link text = $2; can\'t contain [ or ]
+          ' +\\]'            +
         ' +)'), _doAnchors_reference_callback
     );
 
@@ -753,17 +753,17 @@ Markdown_Parser.prototype.doImages = function(text) {
     // First, handle reference-style labeled images: ![alt text][id]
     //
     text = text.replace(new RegExp(
-        '(' +				// wrap whole match in $1
-          '!\\[' +
-            '(' + this.nested_brackets_re + ')' +		// alt text = $2
-          '\\]' +
+        '('              + // wrap whole match in $1
+          '!\\['         +
+            '(' + this.nested_brackets_re + ')' + // alt text = $2
+          '\\]'          +
 
-          '[ ]?' +				// one optional space
-          '(?:\\n[ ]*)?' +		// one optional newline followed by spaces
+          '[ ]?'         + // one optional space
+          '(?:\\n[ ]*)?' + // one optional newline followed by spaces
 
-          '\\[' +
-            '(.*?)' +		// id = $3
-          '\\]' +
+          '\\['          +
+            '(.*?)'      + // id = $3
+          '\\]'          +
 
         ')'
     ), function(match, whole_match, alt_text, link_id) {
@@ -800,26 +800,26 @@ Markdown_Parser.prototype.doImages = function(text) {
     // Don't forget: encode * and _
     //
     text = text.replace(new RegExp(
-        '(' + 				// wrap whole match in $1
-          '!\\[' +
+        '('                + // wrap whole match in $1
+          '!\\['           +
             '(' + this.nested_brackets_re + ')' +		// alt text = $2
-          '\\]' +
-          '\\s?' +			// One optional whitespace character
-          '\\(' +			// literal paren
-            '[ \\n]*' +
-            '(?:' +
-                '<(\\S*)>' +	// src url = $3
-            '|' +
+          '\\]'            +
+          '\\s?'           + // One optional whitespace character
+          '\\('            + // literal paren
+            '[ \\n]*'      +
+            '(?:'          +
+                '<(\\S*)>' + // src url = $3
+            '|'            +
                 '(' + this.nested_url_parenthesis_re + ')' +	// src url = $4
-            ')' +
-            '[ \\n]*' +
-            '(' +			// $5
-              '([\'"])' +	// quote char = $6
-              '(.*?)' +		// title = $7
-              '\\6' +		// matching quote
-              '[ \\n]*' +
-            ')?' +			// title is optional
-          '\\)' +
+            ')'            +
+            '[ \\n]*'      +
+            '('            + // $5
+              '([\'"])'    + // quote char = $6
+              '(.*?)'      + // title = $7
+              '\\6'        + // matching quote
+              '[ \\n]*'    +
+            ')?'           + // title is optional
+          '\\)'            +
         ')'
     ), function(match, whole_match, alt_text, url3, url4, x5, x6, title) {
         //console.log(match);
@@ -869,18 +869,18 @@ Markdown_Parser.prototype.doHeaders = function(text) {
     //
     text = text.replace(new RegExp(
         '^(\\#{1,6})' + // $1 = string of #\'s
-        '[ ]*'       +
-        '(.+?)'      + // $2 = Header text
-        '[ ]*'       +
+        '[ ]*'        +
+        '(.+?)'       + // $2 = Header text
+        '[ ]*'        +
         '\\#*'        + // optional closing #\'s (not counted)
         '\\n+',
-        'mg'), function(match, hashes, span) {
-            //console.log(match);
-            var level = hashes.length;
-            var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
-            return "\n" + self.hashBlock(block) + "\n\n";
-        }
-    );
+        'mg'
+    ), function(match, hashes, span) {
+        //console.log(match);
+        var level = hashes.length;
+        var block = "<h" + level + ">" + self.runSpanGamut(span) + "</h" + level + ">";
+        return "\n" + self.hashBlock(block) + "\n\n";
+    });
 
     return text;
 }
@@ -921,29 +921,29 @@ Markdown_Parser.prototype.doLists = function(text) {
         var other_marker_re = markers_relist[i][1];
         // Re-usable pattern to match any entirel ul or ol list:
         var whole_list_re =
-            '(' +								// $1 = whole list
-              '(' +								// $2
-                '([ ]{0,' + less_than_tab + '})' +	// $3 = number of spaces
-                '(' + marker_re + ')' +			// $4 = first list item marker
-                '[ ]+' +
-              ')' +
-              '[\\s\\S]+?' +
-              '(' +								// $5
+            '('               + // $1 = whole list
+              '('             + // $2
+                '([ ]{0,' + less_than_tab + '})' + // $3 = number of spaces
+                '(' + marker_re + ')'            + // $4 = first list item marker
+                '[ ]+'        +
+              ')'             +
+              '[\\s\\S]+?'    +
+              '('             + // $5
                   '(?=\\x03)' +  // \z
-                '|' +
-                  '\\n{2,}' +
-                  '(?=\\S)' +
-                  '(?!' +						// Negative lookahead for another list item marker
-                    '[ ]*' +
+                '|'           +
+                  '\\n{2,}'   +
+                  '(?=\\S)'   +
+                  '(?!'       + // Negative lookahead for another list item marker
+                    '[ ]*'    +
                     marker_re + '[ ]+' +
-                  ')' +
-                '|' +
-                  '(?=' +						// Lookahead for another kind of list
-                    '\\n' +
-                    '\\3' +						// Must have the same indentation
+                  ')'         +
+                '|'           +
+                  '(?='       + // Lookahead for another kind of list
+                    '\\n'     +
+                    '\\3'     + // Must have the same indentation
                     other_marker_re + '[ ]+' +
-                  ')' +
-              ')' +
+                  ')'         +
+              ')'             +
             ')'; // mx
 
         // We use a different prefix before nested lists than top-level lists.
@@ -1006,14 +1006,15 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
     var self = this;
     list_str = this.__wrapSTXETX__(list_str);
     list_str = list_str.replace(new RegExp(
-        '(\\n)?' +							// leading line = $1
-        '([ ]*)' +							// leading whitespace = $2
-        '(' + marker_any_re +				// list marker and space = $3
-            '(?:[ ]+|(?=\\n))' +				// space only required if item is not empty
-        ')' +
-        '([\\s\\S]*?)' +						// list item text   = $4
-        '(?:(\\n+(?=\\n))|\\n)' +				// tailing blank line = $5
-        '(?=\\n*(\\x03|\\2(' + marker_any_re + ')(?:[ ]+|(?=\\n))))', "gm"
+        '(\\n)?'                + // leading line = $1
+        '([ ]*)'                + // leading whitespace = $2
+        '(' + marker_any_re     + // list marker and space = $3
+            '(?:[ ]+|(?=\\n))'  + // space only required if item is not empty
+        ')'                     +
+        '([\\s\\S]*?)'          + // list item text   = $4
+        '(?:(\\n+(?=\\n))|\\n)' + // tailing blank line = $5
+        '(?=\\n*(\\x03|\\2(' + marker_any_re + ')(?:[ ]+|(?=\\n))))',
+        "gm"
     ), function(match, leading_line, leading_space, marker_space, item, tailing_blank_line) {
         //console.log(match);
         //console.log(item, [leading_line ? leading_line.length : 0, tailing_blank_line ? tailing_blank_line.length : 0]);
@@ -1045,13 +1046,13 @@ Markdown_Parser.prototype.doCodeBlocks = function(text) {
     text = this.__wrapSTXETX__(text);
     text = text.replace(new RegExp(
         '(?:\\n\\n|(?=\\x02)\\n?)' +
-        '(' +	            // $1 = the code block -- one or more lines, starting with a space/tab
-          '(?:^' +
+        '('                        + // $1 = the code block -- one or more lines, starting with a space/tab
+          '(?:^'                   +
             '[ ]{' + this.tab_width + ',}' +  // Lines must start with a tab or a tab-width of spaces
-            '.*\\n+' +
-          ')+' +
-        ')' +
-        '((?=[ ]{0,' + this.tab_width + '}\\S)|(?:\\n*(?=\\x03)))',	// Lookahead for non-space at line-start, or end of doc
+            '.*\\n+'               +
+          ')+'                     +
+        ')'                        +
+        '((?=[ ]{0,' + this.tab_width + '}\\S)|(?:\\n*(?=\\x03)))',  // Lookahead for non-space at line-start, or end of doc
         'mg'
     ), function(match, codeblock) {
         //console.log(match);
@@ -1251,14 +1252,15 @@ Markdown_Parser.prototype.doItalicsAndBold = function(text) {
 Markdown_Parser.prototype.doBlockQuotes = function(text) {
     var self = this;
     text = text.replace(new RegExp(
-        '('+								// Wrap whole match in $1
-          '(?:'+
-            '^[ ]*>[ ]?'+			// ">" at the start of a line
-              '.+\\n'+					// rest of the first line
-            '(.+\\n)*'+					// subsequent consecutive lines
-            '\\n*'+						// blanks
-          ')+'+
-        ')', 'mg'
+        '('              + // Wrap whole match in $1
+          '(?:'          +
+            '^[ ]*>[ ]?' + // ">" at the start of a line
+              '.+\\n'    + // rest of the first line
+            '(.+\\n)*'   + // subsequent consecutive lines
+            '\\n*'       + // blanks
+          ')+'           +
+        ')',
+        'mg'
     ), function(match, bq) {
         //console.log(match);
         // trim one level of quoting - trim whitespace-only lines
@@ -1403,22 +1405,23 @@ Markdown_Parser.prototype.doAutoLinks = function(text) {
 
     // Email addresses: <address@domain.foo>
     text = text.replace(new RegExp(
-        '<' +
-        '(?:mailto:)?' +
-        '(' +
-            '(?:' +
+        '<'             +
+        '(?:mailto:)?'  +
+        '('             +
+            '(?:'       +
                 '[-!#$%&\'*+/=?^_`.{|}~\w\x80-\xFF]+' +
-            '|' +
+            '|'         +
                 '".*?"' +
-            ')' +
-            '\@' +
-            '(?:' +
+            ')'         +
+            '\@'        +
+            '(?:'       +
                 '[-a-z0-9\x80-\xFF]+(\.[-a-z0-9\x80-\xFF]+)*\.[a-z]+' +
-            '|' +
-                '\[[\d.a-fA-F:]+\]' +	// IPv4 & IPv6
-            ')' +
-        ')' +
-        '>', 'i'
+            '|'         +
+                '\[[\d.a-fA-F:]+\]' +  // IPv4 & IPv6
+            ')'         +
+        ')'             +
+        '>',
+        'i'
     ), function(match, address) {
         //console.log(match);
         var link = self.encodeEmailAddress(address);
@@ -1468,7 +1471,7 @@ Markdown_Parser.prototype.encodeEmailAddress = function(addr) {
     }
     */
     addr = chars.join('');
-    
+
     var text = addr.substr(7); // text without `mailto:`
     addr = "<a href=\"" + addr + "\">" + text + "</a>";
 
@@ -1483,22 +1486,22 @@ Markdown_Parser.prototype.parseSpan = function(str) {
     var output = '';
 
     var span_re = new RegExp(
-            '(' +
+            '('                          +
                 '\\\\' + this.escape_chars_re +
-            '|' +
-                '([^`\\\\]?)' +     // $2
-                '(`+)' +					// $3 // code span marker
+            '|'                          +
+                '([^`\\\\]?)'            + // $2
+                '(`+)'                   + // $3 // code span marker
         (this.no_markup ? '' : (
-            '|' +
-                '<!--.*?-->' +		// comment
-            '|' +
-                '<\\?.*?\\?>|<%.*?%>' +		// processing instruction
-            '|' +
-                '<[/!$]?[-a-zA-Z0-9:_]+' +	// regular tags
-                '(?=' +
-                    '\\s' +
+            '|'                          +
+                '<!--.*?-->'             + // comment
+            '|'                          +
+                '<\\?.*?\\?>|<%.*?%>'    + // processing instruction
+            '|'                          +
+                '<[/!$]?[-a-zA-Z0-9:_]+' + // regular tags
+                '(?='                    +
+                    '\\s'                +
                     '(?=[^"\'>]+|"[^"]*"|\'[^\']*\')*' +
-                ')?' +
+                ')?'                     +
                 '>'
         )) +
             ')'
@@ -1776,55 +1779,56 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
     // Regex to check for the presense of newlines around a block tag.
     var newline_before_re = /(?:^\n?|\n\n)*$/;
     var newline_after_re = new RegExp(
-        '^' +						// Start of text following the tag.
-        '([ ]*<!--.*?-->)?' +		// Optional comment.
-        '[ ]*\\n', 					// Must be followed by newline.
+        '^'                 + // Start of text following the tag.
+        '([ ]*<!--.*?-->)?' + // Optional comment.
+        '[ ]*\\n'           , // Must be followed by newline.
         'm'
     );
 
     // Regex to match any tag.
     var block_tag_re = new RegExp(
-        '(' +					// $2: Capture hole tag.
-            '</?' +					// Any opening or closing tag.
-                '(' +				// Tag name.
-                    this.block_tags_re + '|' +
+        '('                        + // $2: Capture hole tag.
+            '</?'                  + // Any opening or closing tag.
+                '('                + // Tag name.
+                    this.block_tags_re         + '|' +
                     this.context_block_tags_re + '|' +
-                    this.clean_tags_re + '|' +
+                    this.clean_tags_re         + '|' +
                     '(?!\\s)' + enclosing_tag_re +
-                ')' +
-                '(?:' +
-                    '(?=[\\s"\'/a-zA-Z0-9])' + 	// Allowed characters after tag name.
-                    '(' +
-                        '".*?"|' +		// Double quotes (can contain `>`)
-                        '\'.*?\'|' +	// Single quotes (can contain `>`)
-                        '.+?' + 		// Anything but quotes and `>`.
-                    ')*?' +
-                ')?' +
-            '>' +					// End of tag.
-        '|' +
-            '<!--.*?-->' +	// HTML Comment
-        '|' +
-            '<\\?.*?\\?>|<%.*?%>' +	// Processing instruction
-        '|' +
-            '<!\\[CDATA\\[.*?\\]\\]>' + 	// CData Block
-        '|' +
+                ')'                +
+                '(?:'              +
+                    '(?=[\\s"\'/a-zA-Z0-9])' + // Allowed characters after tag name.
+                    '('            +
+                        '".*?"|'   + // Double quotes (can contain `>`)
+                        '\'.*?\'|' + // Single quotes (can contain `>`)
+                        '.+?'      + // Anything but quotes and `>`.
+                    ')*?'          +
+                ')?'               +
+            '>'                    + // End of tag.
+        '|'                        +
+            '<!--.*?-->'           + // HTML Comment
+        '|'                        +
+            '<\\?.*?\\?>|<%.*?%>'  + // Processing instruction
+        '|'                        +
+            '<!\\[CDATA\\[.*?\\]\\]>' + // CData Block
+        '|'                        +
             // Code span marker
-            '`+' +
+            '`+'                   +
         ( !span ? // If not in span.
-        '|' +
+        '|'                        +
             // Indented code block
             '(?:^[ ]*\\n|^|\\n[ ]*\\n)' +
             '[ ]{' + (indent + 4) + '}[^\\n]*\\n' +
-            '(?=' +
+            '(?='                  +
                 '(?:[ ]{' + (indent + 4) + '}[^\\n]*|[ ]*)\\n' +
-            ')*' +
-        '|' +
+            ')*'                   +
+        '|'                        +
             // Fenced code block marker
-            '(?:^|\\n)' +
+            '(?:^|\\n)'            +
             '[ ]{0,' + indent + '}~~~+[ ]*\\n'
         : '' ) + // # End (if not is span).
         ')',
-    'm');
+        'm'
+    );
 
     var depth = 0;		// Current depth inside the tag tree.
     var parsed = "";	// Parsed text that will be returned.
@@ -1994,47 +1998,47 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inHTML = function(text, hash_meth
 
     // Regex to match `markdown` attribute inside of a tag.
     var markdown_attr_re = new RegExp(
-        '\\s*' +			// Eat whitespace before the `markdown` attribute
-        'markdown' +
-        '\\s*=\\s*' +
-        '(?:' +
-            '(["\'])' +		// $1: quote delimiter
-            '(.*?)' +		// $2: attribute value
-            '\\1' +			// matching delimiter
-        '|' +
-            '([^\\s>]*)' +	// $3: unquoted attribute value
-        ')' +
-        '()'				// $4: make $3 always defined (avoid warnings)
+        '\\s*'           + // Eat whitespace before the `markdown` attribute
+        'markdown'       +
+        '\\s*=\\s*'      +
+        '(?:'            +
+            '(["\'])'    + // $1: quote delimiter
+            '(.*?)'      + // $2: attribute value
+            '\\1'        + // matching delimiter
+        '|'              +
+            '([^\\s>]*)' + // $3: unquoted attribute value
+        ')'              +
+        '()'               // $4: make $3 always defined (avoid warnings)
     );
 
     // Regex to match any tag.
     var tag_re = new RegExp(
-        '(' +					// $2: Capture hole tag.
-            '</?' +					// Any opening or closing tag.
-                '[\\w:$]+' +			// Tag name.
-                '(?:' +
-                    '(?=[\\s"\'/a-zA-Z0-9])'+	// Allowed characters after tag name.
-                    '(?:' +
-                        '".*?"|' +  	// Double quotes (can contain `>`)
-                        '\'.*?\'|' +	// Single quotes (can contain `>`)
-                        '.+?' +			// Anything but quotes and `>`.
-                    ')*?' +
-                ')?' +
-            '>' +					// End of tag.
-        '|' +
-            '<!--.*?-->' +	// HTML Comment
-        '|' +
-            '<\\?.*?\\?>|<%.*?%>' +	// Processing instruction
-        '|' +
-            '<!\\[CDATA\\[.*?\\]\\]>' +	// CData Block
+        '('                           + // $2: Capture hole tag.
+            '</?'                     + // Any opening or closing tag.
+                '[\\w:$]+'            + // Tag name.
+                '(?:'                 +
+                    '(?=[\\s"\'/a-zA-Z0-9])' + // Allowed characters after tag name.
+                    '(?:'             +
+                        '".*?"|'      + // Double quotes (can contain `>`)
+                        '\'.*?\'|'    + // Single quotes (can contain `>`)
+                        '.+?'         + // Anything but quotes and `>`.
+                    ')*?'             +
+                ')?'                  +
+            '>'                       + // End of tag.
+        '|'                           +
+            '<!--.*?-->'              + // HTML Comment
+        '|'                           +
+            '<\\?.*?\\?>|<%.*?%>'     + // Processing instruction
+        '|'                           +
+            '<!\\[CDATA\\[.*?\\]\\]>' + // CData Block
         ')'
     );
 
-    var original_text = text;		// Save original text in case of faliure.
+    var original_text = text; // Save original text in case of faliure.
 
-    var depth      = 0; 	// Current depth inside the tag tree.
-    var block_text = "";	// Temporary text holder for current text.
-    var parsed     = "";	// Parsed text that will be returned.
+    var depth      = 0;  // Current depth inside the tag tree.
+    var block_text = ""; // Temporary text holder for current text.
+    var parsed     = ""; // Parsed text that will be returned.
 
     //
     // Get the name of the starting tag.
@@ -2187,9 +2191,10 @@ MarkdownExtra_Parser.prototype.doHeaders = function(text) {
     //    --------
 
     text = text.replace(new RegExp(
-        '(^.+?)' +                              // $1: Header text
+        '(^.+?)'                              + // $1: Header text
         '(?:[ ]+\\{\\#([-_:a-zA-Z0-9]+)\\})?' + // $2: Id attribute
-        '[ ]*\\n(=+|-+)[ ]*\\n+', 'mg'          // $3: Header footer
+        '[ ]*\\n(=+|-+)[ ]*\\n+',               // $3: Header footer
+         'mg'
     ), function(match, span, id, line) {
        //console.log(match);
         if(line == '-' && span.match(/^- /)) {
@@ -2210,9 +2215,9 @@ MarkdownExtra_Parser.prototype.doHeaders = function(text) {
 
     text = text.replace(new RegExp(
         '^(\\#{1,6})' + // $1 = string of #\'s
-        '[ ]*'       +
-        '(.+?)'      + // $2 = Header text
-        '[ ]*'       +
+        '[ ]*'        +
+        '(.+?)'       + // $2 = Header text
+        '[ ]*'        +
         '\\#*'        + // optional closing #\'s (not counted)
         '(?:[ ]+\\{\\#([-_:a-zA-Z0-9]+)\\})?' + // id attribute
         '\\n+',
@@ -2310,21 +2315,21 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
     //	| Cell 3   | Cell 4
     //
     text = text.replace(new RegExp(
-        '^' +							// Start of a line
-        '[ ]{0,' + less_than_tab + '}' +	// Allowed whitespace.
-        '[|]' +							// Optional leading pipe (present)
-        '(.+)\\n' +						// $1: Header row (at least one pipe)
+        '^'                            + // Start of a line
+        '[ ]{0,' + less_than_tab + '}' + // Allowed whitespace.
+        '[|]'                          + // Optional leading pipe (present)
+        '(.+)\\n'                      + // $1: Header row (at least one pipe)
 
-        '[ ]{0,' + less_than_tab + '}' +	// Allowed whitespace.
-        '[|]([ ]*[-:]+[-| :]*)\\n' +	// $2: Header underline
+        '[ ]{0,' + less_than_tab + '}' + // Allowed whitespace.
+        '[|]([ ]*[-:]+[-| :]*)\\n'     + // $2: Header underline
 
-        '(' +							// $3: Cells
-            '(?:' +
-                '[ ]*' +				// Allowed whitespace.
-                '[|].*\\n' +			// Row content.
-            ')*' +
-        ')' +
-        '(?=\\n|\\x03)',					// Stop at final double newline.
+        '('                            + // $3: Cells
+            '(?:'                      +
+                '[ ]*'                 + // Allowed whitespace.
+                '[|].*\\n'             + // Row content.
+            ')*'                       +
+        ')'                            +
+        '(?=\\n|\\x03)'                , // Stop at final double newline.
         'mg'
     ), function(match, head, underline, content) {
         // Remove leading pipe for each row.
@@ -2342,19 +2347,19 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
     //	Cell 3   | Cell 4
     //
     text = text.replace(new RegExp(
-        '^' +							// Start of a line
-        '[ ]{0,' + less_than_tab + '}' +	// Allowed whitespace.
-        '(\\S.*[|].*)\\n' +				// $1: Header row (at least one pipe)
+        '^'                             + // Start of a line
+        '[ ]{0,' + less_than_tab + '}'  + // Allowed whitespace.
+        '(\\S.*[|].*)\\n'               + // $1: Header row (at least one pipe)
 
-        '[ ]{0,' + less_than_tab + '}' +	// Allowed whitespace.
-        '([-:]+[ ]*[|][-| :]*)\\n' +	// $2: Header underline
+        '[ ]{0,' + less_than_tab + '}'  + // Allowed whitespace.
+        '([-:]+[ ]*[|][-| :]*)\\n'      + // $2: Header underline
 
-        '(' +							// $3: Cells
-            '(?:' +
-                '.*[|].*\\n' +		// Row content
-            ')*' +
-        ')' +
-        '(?=\\n|\\x03)',					// Stop at final double newline.
+        '('                             + // $3: Cells
+            '(?:'                       +
+                '.*[|].*\\n'            + // Row content
+            ')*'                        +
+        ')'                             +
+        '(?=\\n|\\x03)'                 , // Stop at final double newline.
         'mg'
     ), _doTable_callback);
 
@@ -2372,31 +2377,31 @@ MarkdownExtra_Parser.prototype.doDefLists = function(text) {
     var less_than_tab = this.tab_width - 1;
 
     // Re-usable pattern to match any entire dl list:
-    var whole_list_re = '(?:' +
-        '(' +								// $1 = whole list
-          '(' +								// $2
+    var whole_list_re = '(?:'     +
+        '('                       + // $1 = whole list
+          '('                     + // $2
             '[ ]{0,' + less_than_tab + '}' +
-            '((?:.*\\S.*\\n)+)' +				// $3 = defined term
-            '\\n?' +
+            '((?:.*\\S.*\\n)+)'   + // $3 = defined term
+            '\\n?'                +
             '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
-          ')' +
-          '([\\s\\S]+?)' +
-          '(' +								// $4
-              '(?=\\0x03)' + // \z
-            '|' +
-              '\\n{2,}' +
-              '(?=\\S)' +
-              '(?!' +						// Negative lookahead for another term
+          ')'                     +
+          '([\\s\\S]+?)'          +
+          '('                     + // $4
+              '(?=\\0x03)'        + // \z
+            '|'                   +
+              '\\n{2,}'           +
+              '(?=\\S)'           +
+              '(?!'               + // Negative lookahead for another term
                 '[ ]{0,' + less_than_tab + '}' +
-                '(?:\\S.*\\n )+?' +			// defined term
-                '\\n?' +
+                '(?:\\S.*\\n )+?' + // defined term
+                '\\n?'            +
                 '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
-              ')' +
-              '(?!' +						// Negative lookahead for another definition
+              ')'                 +
+              '(?!'               + // Negative lookahead for another definition
                 '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
-              ')' +
-          ')' +
-        ')' +
+              ')'                 +
+          ')'                     +
+        ')'                       +
     ')'; // mx
 
     text = this.__wrapSTXETX__(text);
@@ -2435,15 +2440,15 @@ MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
 
     // Process definition terms.
     list_str = list_str.replace(new RegExp(
-        '(\\x02\\n?|\\n\\n+)' +					// leading line
-        '(' +								// definition terms = $1
+        '(\\x02\\n?|\\n\\n+)'              + // leading line
+        '('                                + // definition terms = $1
             '[ ]{0,' + less_than_tab + '}' + // leading whitespace
-            '(?![:][ ]|[ ])' +				// negative lookahead for a definition 
-                                        //   mark (colon) or more whitespace.
-            '(?:\\S.*\\n)+?' +				// actual term (not whitespace).
-        ')' +			
-        '(?=\\n?[ ]{0,3}:[ ])',				// lookahead for following line feed 
-                                        //   with a definition mark.
+            '(?![:][ ]|[ ])'               + // negative lookahead for a definition 
+                                             //   mark (colon) or more whitespace.
+            '(?:\\S.*\\n)+?'               + // actual term (not whitespace).
+        ')'                                +
+        '(?=\\n?[ ]{0,3}:[ ])'             , // lookahead for following line feed 
+                                             //   with a definition mark.
         'mg'
     ), function(match, pre, terms_str) {
         // [portiong note] changed to list = $2 in order to reserve previously \n\n.
@@ -2459,18 +2464,19 @@ MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
 
     // Process actual definitions.
     list_str = list_str.replace(new RegExp(
-        '\\n(\\n+)?' +						// leading line = $1
-        '(' +								// marker space = $2
-            '[ ]{0,' + less_than_tab + '}' +	// whitespace before colon
-            '[:][ ]+' +						// definition mark (colon)
-        ')' +
-        '([\\s\\S]+?)' +						// definition text = $3
-        '(?=\\n+' + 						// stop at next definition mark,
-            '(?:' +							// next term or end of text
+        '\\n(\\n+)?'                       + // leading line = $1
+        '('                                + // marker space = $2
+            '[ ]{0,' + less_than_tab + '}' + // whitespace before colon
+            '[:][ ]+'                      + // definition mark (colon)
+        ')'                                +
+        '([\\s\\S]+?)'                     + // definition text = $3
+        '(?=\\n+'                          + // stop at next definition mark,
+            '(?:'                          + // next term or end of text
                 '[ ]{0,' + less_than_tab + '}[:][ ]|' +
-                '<dt>|\\x03' + // \z
-            ')' +
-        ')', 'mg'
+                '<dt>|\\x03'               + // \z
+            ')'                            +
+        ')',
+        'mg'
     ), function(match, leading_line, marker_space, def) {
         if (leading_line || def.match(/\n{2,}/)) {
             // Replace marker with the appropriate whitespace indentation
@@ -2505,22 +2511,23 @@ MarkdownExtra_Parser.prototype.doFencedCodeBlocks = function(text) {
 
     text = this.__wrapSTXETX__(text);
     text = text.replace(new RegExp(
-        '(?:\\n|\\x02)' +
+        '(?:\\n|\\x02)'    +
         // 1: Opening marker
-        '(' +
-            '~{3,}' + // Marker: three tilde or more.
-        ')' +
-        '[ ]*\\n' + // Whitespace and newline following marker.
+        '('                +
+            '~{3,}'        + // Marker: three tilde or more.
+        ')'                +
+        '[ ]*\\n'          + // Whitespace and newline following marker.
         // 2: Content
-        '(' +
-            '[\\s\\S]*\\n'+
+        '('                +
+            '[\\s\\S]*\\n' +
             // [incompatible] '(?>' +
             // [incompatible]     '(?!\\1[ ]*\\n)' +	// Not a closing marker.
             // [incompatible]     '.*\\n+' +
             // [incompatible] ')+' +
-        ')' +
+        ')'               +
         // Closing marker.
-        '\\1[ ]*\\n', "mg"
+        '\\1[ ]*\\n',
+        "mg"
     ), function(match, m1, codeblock) {
         codeblock = _htmlspecialchars_ENT_NOQUOTES(codeblock);
         codeblock = codeblock.replace(/^\n+/, function(match) {
@@ -2592,19 +2599,20 @@ MarkdownExtra_Parser.prototype.stripFootnotes = function(text) {
 
     // Link defs are in the form: [^id]: url "optional title"
     text = text.replace(new RegExp(
-        '^[ ]{0,' + less_than_tab + '}\\[\\^(.+?)\\][ ]?:' +	// note_id = $1
-          '[ ]*' +
-          '\\n?' +					// maybe *one* newline
-        '(' +						// text = $2 (no blank lines allowed)
-            '(?:' +
-                '.+' +				// actual text
-            '|' +
-                '\\n' +				// newlines but 
+        '^[ ]{0,' + less_than_tab + '}\\[\\^(.+?)\\][ ]?:' + // note_id = $1
+          '[ ]*'                       +
+          '\\n?'                       + // maybe *one* newline
+        '('                            + // text = $2 (no blank lines allowed)
+            '(?:'                      +
+                '.+'                   + // actual text
+            '|'                        +
+                '\\n'                  + // newlines but 
                 '(?!\\[\\^.+?\\]:\\s)' + // negative lookahead for footnote marker.
-                '(?!\\n+[ ]{0,3}\\S)' + // ensure line is not blank and followed 
-                                // by non-indented content
-            ')*' +
-        ')', "mg"
+                '(?!\\n+[ ]{0,3}\\S)'  + // ensure line is not blank and followed 
+                                         // by non-indented content
+            ')*'                       +
+        ')',
+        "mg"
     ), function(match, m1, m2) {
         var note_id = self.fn_id_prefix + m1;
         self.footnotes[note_id] = self.outdent(m2);
@@ -2728,8 +2736,8 @@ MarkdownExtra_Parser.prototype.stripAbbreviations = function(text) {
 
     // Link defs are in the form: [id]*: url "optional title"
     text = text.replace(new RegExp(
-        '^[ ]{0,' + less_than_tab + '}\\*\\[(.+?)\\][ ]?:' +	// abbr_id = $1
-        '(.*)',					// text = $2 (no blank lines allowed)
+        '^[ ]{0,' + less_than_tab + '}\\*\\[(.+?)\\][ ]?:' + // abbr_id = $1
+        '(.*)',   // text = $2 (no blank lines allowed)
         "m"
     ), function(match, abbr_word, abbr_desc) {
         if (self.abbr_word_re != '') {
@@ -2752,7 +2760,7 @@ MarkdownExtra_Parser.prototype.doAbbreviations = function(text) {
         // cannot use the /x modifier because abbr_word_re may 
         // contain significant spaces:
         text = text.replace(new RegExp(
-            '(^|[^\\w\\x1A])' +
+            '(^|[^\\w\\x1A])'             +
             '(' + this.abbr_word_re + ')' +
             '(?![\\w\\x1A])'
         ), function(match, prev, abbr) {
