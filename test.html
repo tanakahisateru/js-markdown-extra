@@ -7,6 +7,7 @@
   <style type="text/css">
   #result table, #result th, #result td { border: 1px solid gray; }
   #result pre, #result code { background: #EEE; }
+  #result blockquote { background: #FFE; font-style:italic; }
   </style>
 </head>
 <body>
@@ -19,6 +20,9 @@ PHRASE EMPHASIS
 ---------------
 *italic*   **bold**  
 _italic_   __bold__
+
+this_text_is_normal  
+_this text_is italic_
 
 LINKS
 ---------------
@@ -47,14 +51,14 @@ Setext-style:
 Header 1
 ========
 
-Header 2
+Header 2 {#headers-1-2}
 --------
 
 atx-style (closing #'s are optional):
 
 # Header 1 #
 
-## Header 2 ##
+## Header 2 ##  {#headers-2-2}
 
 ###### Header 6
 
@@ -112,6 +116,12 @@ This is a normal paragraph.
 
     This is a preformatted
     code block.
+
+~~~~
+This is a preformatted
+
+   code block.
+~~~~
 
 HORIZONTAL RULES
 ---------------
@@ -220,13 +230,13 @@ Markdow enabled inside HTML when marked by markdown="1" attribute.
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;') + '</pre>');
-        document.write('<hr/>');
+        document.write('<hr/>');*/
         document.write('<pre>' + Markdown(mdtext)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;') + '</pre>');
         document.write('<hr/>');
-        */
+        
         document.write(Markdown(mdtext));
       </script>
     </div>

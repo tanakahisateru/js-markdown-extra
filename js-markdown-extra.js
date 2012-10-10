@@ -1713,6 +1713,67 @@ MarkdownExtra_Parser.prototype.teardown = function() {
     this.constructor.prototype.teardown.call(this);
 };
 
+
+/**
+ * Redefined to add id attribute support.
+ */
+MarkdownExtra_Parser.prototype.doHeaders = function(text) {
+    var self = this;
+
+    function _doHeaders_attr(attr) {
+        if(attr == null) {  return ""; }
+        return " id=\"" + attr + "\"";
+    }
+
+    // Setext-style headers:
+    //    Header 1  {#header1}
+    //    ========
+    //
+    //    Header 2  {#header2}
+    //    --------
+
+    text = text.replace(new RegExp(
+        '(^.+?)' +                              // $1: Header text
+        '(?:[ ]+\\{\\#([-_:a-zA-Z0-9]+)\\})?' + // $2: Id attribute
+        '[ ]*\\n(=+|-+)[ ]*\\n+', 'mg'          // $3: Header footer
+    ), function(match, span, id, line) {
+       //console.log(match);
+        if(line == '-' && span.match(/^- /)) {
+            return match;
+        }
+        var level = line.charAt(0) == '=' ? 1 : 2;
+        var attr = _doHeaders_attr(id);
+        var block = "<h" + level + attr + ">" + self.runSpanGamut(span) + "</h" + level + ">";
+        return "\n" + self.hashBlock(block)  + "\n\n";
+    });
+
+    // atx-style headers:
+    //    # Header 1        {#header1}
+    //    ## Header 2       {#header2}
+    //    ## Header 2 with closing hashes ##  {#header3}
+    //    ...
+    //    ###### Header 6   {#header2}
+
+    text = text.replace(new RegExp(
+        '^(\\#{1,6})' + // $1 = string of #\'s
+        '[ ]*'       +
+        '(.+?)'      + // $2 = Header text
+        '[ ]*'       +
+        '\\#*'        + // optional closing #\'s (not counted)
+        '(?:[ ]+\\{\\#([-_:a-zA-Z0-9]+)\\})?' + // id attribute
+        '\\n+',
+        'mg'
+    ), function(match, hashes, span, id) {
+        //console.log(match);
+        var level = hashes.length;
+        var attr = _doHeaders_attr(id);
+        var block = "<h" + level + attr + ">" + self.runSpanGamut(span) + "</h" + level + ">";
+        return "\n" + self.hashBlock(block) + "\n\n";
+    });
+
+    return text;
+}
+
 /**
  * Form HTML tables.
  */
