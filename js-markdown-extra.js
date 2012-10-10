@@ -56,7 +56,7 @@ MARKDOWN_PARSER_CLASS = 'MarkdownExtra_Parser';
  * @param text Markdown text
  * @return HTML
  */
-function Markdown($text) {
+function Markdown(text) {
     //Initialize the parser and return the result of its transform method.
     var parser;
     if('undefined' == typeof arguments.callee.parser) {
@@ -68,7 +68,7 @@ function Markdown($text) {
         parser = arguments.callee.parser;
     }
     // Transform text using parser.
-    return parser.transform($text);
+    return parser.transform(text);
 }
 
 /**
