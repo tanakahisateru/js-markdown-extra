@@ -1626,20 +1626,20 @@ function MarkdownExtra_Parser() {
     // ### HTML Block Parser ###
 
     // Tags that are always treated as block tags:
-    this.block_tags_re = /p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|address|form|fieldset|iframe|hr|legend/;
+    this.block_tags_re = 'p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|address|form|fieldset|iframe|hr|legend';
 
     // Tags treated as block tags only if the opening tag is alone on it's line:
-    this.context_block_tags_re = /script|noscript|math|ins|del/;
+    this.context_block_tags_re = 'script|noscript|math|ins|del';
 
     // Tags where markdown="1" default to span mode:
-    this.contain_span_tags_re = /p|h[1-6]|li|dd|dt|td|th|legend|address/;
+    this.contain_span_tags_re = 'p|h[1-6]|li|dd|dt|td|th|legend|address';
 
     // Tags which must not have their contents modified, no matter where 
     // they appear:
-    this.clean_tags_re = /script|math/;
+    this.clean_tags_re = 'script|math';
 
     // Tags that do not need to be closed.
-    this.auto_close_tags_re = /hr|img/;
+    this.auto_close_tags_re = 'hr|img';
 
     // Redefining emphasis markers so that emphasis by underscore does not
     // work in the middle of a word.
@@ -1712,6 +1712,453 @@ MarkdownExtra_Parser.prototype.teardown = function() {
 
     this.constructor.prototype.teardown.call(this);
 };
+
+
+/**
+ * Hashify HTML Blocks and "clean tags".
+ *
+ * We only want to do this for block-level HTML tags, such as headers,
+ * lists, and tables. That's because we still want to wrap <p>s around
+ * "paragraphs" that are wrapped in non-block-level tags, such as anchors,
+ * phrase emphasis, and spans. The list of tags we're looking for is
+ * hard-coded.
+ *
+ * This works by calling _HashHTMLBlocks_InMarkdown, which then calls
+ * _HashHTMLBlocks_InHTML when it encounter block tags. When the markdown="1" 
+ * attribute is found whitin a tag, _HashHTMLBlocks_InHTML calls back
+ *  _HashHTMLBlocks_InMarkdown to handle the Markdown syntax within the tag.
+ * These two functions are calling each other. It's recursive!
+ */
+MarkdownExtra_Parser.prototype.hashHTMLBlocks = function(text) {
+    //
+    // Call the HTML-in-Markdown hasher.
+    //
+    var r = this._hashHTMLBlocks_inMarkdown(text);
+    text = r[0];
+
+    return text;
+}
+
+/**
+ * Parse markdown text, calling _HashHTMLBlocks_InHTML for block tags.
+ *
+ * *   $indent is the number of space to be ignored when checking for code 
+ *     blocks. This is important because if we don't take the indent into 
+ *     account, something like this (which looks right) won't work as expected:
+ *
+ *     <div>
+ *         <div markdown="1">
+ *         Hello World.  <-- Is this a Markdown code block or text?
+ *         </div>  <-- Is this a Markdown code block or a real tag?
+ *     <div>
+ *
+ *     If you don't like this, just don't indent the tag on which
+ *     you apply the markdown="1" attribute.
+ *
+ * *   If $enclosing_tag_re is not empty, stops at the first unmatched closing 
+ *     tag with that name. Nested tags supported.
+ *
+ * *   If $span is true, text inside must treated as span. So any double 
+ *     newline will be replaced by a single newline so that it does not create 
+ *     paragraphs.
+ *
+ * Returns an array of that form: ( processed text , remaining text )
+ */
+MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, indent, enclosing_tag_re, span) {
+    if(typeof(indent) == 'undefined') { indent = 0; }
+    if(typeof(enclosing_tag_re) == 'undefined') { enclosing_tag_re = ''; }
+    if(typeof(span) == 'undefined') { span = false; }
+
+    if(text === '') { return ['', '']; }
+
+    var matches;
+
+    // Regex to check for the presense of newlines around a block tag.
+    var newline_before_re = /(?:^\n?|\n\n)*$/;
+    var newline_after_re = new RegExp(
+        '^' +						// Start of text following the tag.
+        '([ ]*<!--.*?-->)?' +		// Optional comment.
+        '[ ]*\\n', 					// Must be followed by newline.
+        'm'
+    );
+
+    // Regex to match any tag.
+    var block_tag_re = new RegExp(
+        '(' +					// $2: Capture hole tag.
+            '</?' +					// Any opening or closing tag.
+                '(' +				// Tag name.
+                    this.block_tags_re + '|' +
+                    this.context_block_tags_re + '|' +
+                    this.clean_tags_re + '|' +
+                    '(?!\\s)' + enclosing_tag_re +
+                ')' +
+                '(?:' +
+                    '(?=[\\s"\'/a-zA-Z0-9])' + 	// Allowed characters after tag name.
+                    '(' +
+                        '".*?"|' +		// Double quotes (can contain `>`)
+                        '\'.*?\'|' +	// Single quotes (can contain `>`)
+                        '.+?' + 		// Anything but quotes and `>`.
+                    ')*?' +
+                ')?' +
+            '>' +					// End of tag.
+        '|' +
+            '<!--.*?-->' +	// HTML Comment
+        '|' +
+            '<\\?.*?\\?>|<%.*?%>' +	// Processing instruction
+        '|' +
+            '<!\\[CDATA\\[.*?\\]\\]>' + 	// CData Block
+        '|' +
+            // Code span marker
+            '`+' +
+        ( !span ? // If not in span.
+        '|' +
+            // Indented code block
+            '(?:^[ ]*\\n|^|\\n[ ]*\\n)' +
+            '[ ]{' + (indent + 4) + '}[^\\n]*\\n' +
+            '(?=' +
+                '(?:[ ]{' + (indent + 4) + '}[^\\n]*|[ ]*)\\n' +
+            ')*' +
+        '|' +
+            // Fenced code block marker
+            '(?:^|\\n)' +
+            '[ ]{0,' + indent + '}~~~+[ ]*\\n'
+        : '' ) + // # End (if not is span).
+        ')',
+    'm');
+
+    var depth = 0;		// Current depth inside the tag tree.
+    var parsed = "";	// Parsed text that will be returned.
+
+    //
+    // Loop through every tag until we find the closing tag of the parent
+    // or loop until reaching the end of text if no parent tag specified.
+    //
+    do {
+        //
+        // Split the text using the first $tag_match pattern found.
+        // Text before  pattern will be first in the array, text after
+        // pattern will be at the end, and between will be any catches made 
+        // by the pattern.
+        //
+        var parts_available = text.match(block_tag_re); //PREG_SPLIT_DELIM_CAPTURE
+        // If end of $text has been reached. Stop loop.
+        if(!parts_available) {
+            text = "";
+            break;
+        }
+        var parts = [RegExp.leftContext, RegExp.lastMatch, RegExp.rightContext];
+
+        // If in Markdown span mode, add a empty-string span-level hash 
+        // after each newline to prevent triggering any block element.
+        if(span) {
+            var _void = this.hashPart("", ':');
+            var newline = _void + "\n";
+            parts[0] = _void + parts[0].replace(/\n/g, newline) + _void;
+        }
+
+        parsed += parts[0]; // Text before current tag.
+
+        var tag  = parts[1]; // Tag to handle.
+        var text = parts[2]; // Remaining text after current tag.
+        var tag_re = _preg_quote(tag); // For use in a regular expression.
+
+        //
+        // Check for: Code span marker
+        //
+        if (tag.charAt(0) == "`") {
+            // Find corresponding end marker.
+            tag_re = _preg_quote(tag);
+            if(matches = text.match(new RegExp('^(.+?|\\n[^\\n])*?[^`]' + tag_re + '[^`]'))) {
+                // End marker found: pass text unchanged until marker.
+                parsed += tag + matches[0];
+                text = text.substr(matches[0].length);
+            }
+            else {
+                // Unmatched marker: just skip it.
+                parsed += tag;
+            }
+        }
+        //
+        // Check for: Fenced code block marker.
+        //
+        else if(tag.match(new RegExp('^\\n?[ ]{0,' + (indent + 3) * '}~'))) {
+            // Fenced code block marker: find matching end marker.
+            tag_re = _preg_quote(_trim(tag));
+            if(matches = text.match(new RegExp('^(?>.*\\n)+?[ ]{0,' + indent + '}' + tag_re + '[ ]*\\n'))) {
+                // End marker found: pass text unchanged until marker.
+                parsed += tag + matches[0];
+                text = text.substr(matches[0].length);
+            }
+            else {
+                // No end marker: just skip it.
+                parsed += tag;
+            }
+        }
+        //
+        // Check for: Indented code block.
+        //
+        else if(tag.charAt(0) == "\n" || tag.charAt(0) == " ") {
+            // Indented code block: pass it unchanged, will be handled 
+            // later.
+            parsed += tag;
+        }
+        //
+        // Check for: Opening Block level tag or
+        //            Opening Context Block tag (like ins and del) 
+        //               used as a block tag (tag is alone on it's line).
+        //
+        else if (tag.match(new RegExp('^<(?:' + this.block_tags_re + ')\\b')) ||
+            (
+                tag.match(new RegExp('^<(?:' + this.context_block_tags_re + ')\\b')) &&
+                parsed.match(newline_before_re) &&
+                text.match(newline_after_re)
+            )
+        ) {
+            // Need to parse tag and following text using the HTML parser.
+            var t = this._hashHTMLBlocks_inHTML(tag + text, this.hashBlock, true);
+            var block_text = t[0];
+            text = t[1];
+
+            // Make sure it stays outside of any paragraph by adding newlines.
+            parsed += "\n\n" + block_text + "\n\n";
+        }
+        //
+        // Check for: Clean tag (like script, math)
+        //            HTML Comments, processing instructions.
+        //
+        else if(
+            tag.match(new RegExp('^<(?:' + this.clean_tags_re + ')\\b')) ||
+            tag.charAt(1) == '!' || tag.charAt(1) == '?'
+        ) {
+            // Need to parse tag and following text using the HTML parser.
+            // (don't check for markdown attribute)
+            var t = this._hashHTMLBlocks_inHTML(tag + text, this.hashClean, false);
+            var block_text = t[0];
+            text = t[1];
+
+            parsed += block_text;
+        }
+        //
+        // Check for: Tag with same name as enclosing tag.
+        //
+        else if (enclosing_tag_re !== '' &&
+            // Same name as enclosing tag.
+            tag.match(new RegExp('^</?(?:' + enclosing_tag_re + ')\\b'))
+        ) {
+            //
+            // Increase/decrease nested tag count.
+            //
+            if (tag.charAt(1) == '/') depth--;
+            else if (tag.charAr(tag.length - 2) != '/') depth++;
+
+            if(depth < 0) {
+                //
+                // Going out of parent element. Clean up and break so we
+                // return to the calling function.
+                //
+                text = tag + text;
+                break;
+            }
+
+            parsed += tag;
+        }
+        else {
+            parsed += tag;
+        }
+    } while(depth >= 0);
+
+    return [parsed, text];
+}
+
+/**
+ * Parse HTML, calling _HashHTMLBlocks_InMarkdown for block tags.
+ *
+ * *   Calls $hash_method to convert any blocks.
+ * *   Stops when the first opening tag closes.
+ * *   $md_attr indicate if the use of the `markdown="1"` attribute is allowed.
+ *     (it is not inside clean tags)
+ *
+ * Returns an array of that form: ( processed text , remaining text )
+ */
+MarkdownExtra_Parser.prototype._hashHTMLBlocks_inHTML = function(text, hash_method, md_attr) {
+    if(text === '') return ['', ''];
+
+    var matches;
+
+    // Regex to match `markdown` attribute inside of a tag.
+    var markdown_attr_re = new RegExp(
+        '\\s*' +			// Eat whitespace before the `markdown` attribute
+        'markdown' +
+        '\\s*=\\s*' +
+        '(?:' +
+            '(["\'])' +		// $1: quote delimiter
+            '(.*?)' +		// $2: attribute value
+            '\\1' +			// matching delimiter
+        '|' +
+            '([^\\s>]*)' +	// $3: unquoted attribute value
+        ')' +
+        '()'				// $4: make $3 always defined (avoid warnings)
+    );
+
+    // Regex to match any tag.
+    var tag_re = new RegExp(
+        '(' +					// $2: Capture hole tag.
+            '</?' +					// Any opening or closing tag.
+                '[\\w:$]+' +			// Tag name.
+                '(?:' +
+                    '(?=[\\s"\'/a-zA-Z0-9])'+	// Allowed characters after tag name.
+                    '(?:' +
+                        '".*?"|' +  	// Double quotes (can contain `>`)
+                        '\'.*?\'|' +	// Single quotes (can contain `>`)
+                        '.+?' +			// Anything but quotes and `>`.
+                    ')*?' +
+                ')?' +
+            '>' +					// End of tag.
+        '|' +
+            '<!--.*?-->' +	// HTML Comment
+        '|' +
+            '<\\?.*?\\?>|<%.*?%>' +	// Processing instruction
+        '|' +
+            '<!\\[CDATA\\[.*?\\]\\]>' +	// CData Block
+        ')'
+    );
+
+    var original_text = text;		// Save original text in case of faliure.
+
+    var depth      = 0; 	// Current depth inside the tag tree.
+    var block_text = "";	// Temporary text holder for current text.
+    var parsed     = "";	// Parsed text that will be returned.
+
+    //
+    // Get the name of the starting tag.
+    // (This pattern makes $base_tag_name_re safe without quoting.)
+    //
+    var base_tag_name_re = "";
+    if(matches = text.match(/^<([\w:$]*)\b/)) {
+        base_tag_name_re = matches[1];
+    }
+
+    //
+    // Loop through every tag until we find the corresponding closing tag.
+    //
+    do {
+        //
+        // Split the text using the first $tag_match pattern found.
+        // Text before  pattern will be first in the array, text after
+        // pattern will be at the end, and between will be any catches made 
+        // by the pattern.
+        //
+        var parts_available = text.match(tag_re); //PREG_SPLIT_DELIM_CAPTURE);
+        // If end of $text has been reached. Stop loop.
+        if(!parts_available) {
+            //
+            // End of $text reached with unbalenced tag(s).
+            // In that case, we return original text unchanged and pass the
+            // first character as filtered to prevent an infinite loop in the 
+            // parent function.
+            //
+            return [original_text.charAt(0), original_text.substr(1)];
+        }
+        var parts = [RegExp.leftContext, RegExp.lastMatch, RegExp.rightContext];
+
+        block_text += parts[0]; // Text before current tag.
+        tag         = parts[1]; // Tag to handle.
+        text        = parts[2]; // Remaining text after current tag.
+
+        //
+        // Check for: Auto-close tag (like <hr/>)
+        //			 Comments and Processing Instructions.
+        //
+        if(tag.match(new RegExp('^</?(?:' + this.auto_close_tags_re + ')\\b')) ||
+            tag.charAt(1) == '!' || tag.charAt(1) == '?')
+        {
+            // Just add the tag to the block as if it was text.
+            block_text += tag;
+        }
+        else {
+            //
+            // Increase/decrease nested tag count. Only do so if
+            // the tag's name match base tag's.
+            //
+            if (tag.match(new RegExp('^</?' + base_tag_name_re + '\\b'))) {
+                if(tag.charAt(1) == '/') { depth--; }
+                else if(tag.charAt(tag.length - 2) != '/') { depth++; }
+            }
+
+            //
+            // Check for `markdown="1"` attribute and handle it.
+            //
+            var attr_m;
+            if(md_attr &&
+                (attr_m = tag.match(markdown_attr_re)) &&
+                (attr_m[2] + attr_m[3]).match(/^1|block|span$/))
+            {
+                // Remove `markdown` attribute from opening tag.
+                tag = tag.replace(markdown_attr_re, '');
+
+                // Check if text inside this tag must be parsed in span mode.
+                this.mode = attr_m[2] + attr_m[3];
+                var span_mode = this.mode == 'span' || this.mode != 'block' &&
+                    tag.match(new RegExp('^<(?:' + this.contain_span_tags_re + ')\\b'));
+
+                // Calculate indent before tag.
+                if (matches = block_text.match(/(?:^|\n)( *?)(?! ).*?$/)) {
+                    //var strlen = this.utf8_strlen;
+                    indent = matches[1].length; //strlen(matches[1], 'UTF-8');
+                } else {
+                    indent = 0;
+                }
+
+                // End preceding block with this tag.
+                block_text += tag;
+                parsed += hash_method.call(this, block_text);
+
+                // Get enclosing tag name for the ParseMarkdown function.
+                // (This pattern makes $tag_name_re safe without quoting.)
+                matches = tag.match(/^<([\w:$]*)\b/);
+                var tag_name_re = matches[1];
+
+                // Parse the content using the HTML-in-Markdown parser.
+                var t = this._hashHTMLBlocks_inMarkdown(text, indent, tag_name_re, span_mode);
+                block_text = t[0];
+                text = t[1];
+
+                // Outdent markdown text.
+                if(indent > 0) {
+                    block_text = block_text.replace(new RegExp('/^[ ]{1,' + indent + '}', 'm'), "");
+                }
+
+                // Append tag content to parsed text.
+                if (!span_mode) { parsed += "\n\n" + block_text + "\n\n"; }
+                else { parsed += block_text; }
+
+                // Start over a new block.
+                block_text = "";
+            }
+            else {
+                block_text += tag;
+            }
+        }
+
+    } while(depth > 0);
+
+    //
+    // Hash last block text that wasn't processed inside the loop.
+    //
+    parsed += hash_method.call(this, block_text);
+
+    return [parsed, text];
+}
+
+
+/**
+ * Called whenever a tag must be hashed when a function insert a "clean" tag
+ * in $text, it pass through this function and is automaticaly escaped, 
+ * blocking invalid nested overlap.
+ */
+MarkdownExtra_Parser.prototype.hashClean = function(text) {
+    return this.hashPart(text, 'C');
+}
 
 
 /**
