@@ -2511,20 +2511,19 @@ MarkdownExtra_Parser.prototype.doFencedCodeBlocks = function(text) {
 
     text = this.__wrapSTXETX__(text);
     text = text.replace(new RegExp(
-        '(?:\\n|\\x02)'    +
+        '(?:\\n|\\x02)'          +
         // 1: Opening marker
-        '('                +
-            '~{3,}'        + // Marker: three tilde or more.
-        ')'                +
-        '[ ]*\\n'          + // Whitespace and newline following marker.
+        '('                      +
+            '~{3,}'              + // Marker: three tilde or more.
+        ')'                      +
+        '[ ]*\\n'                + // Whitespace and newline following marker.
         // 2: Content
-        '('                +
-            '[\\s\\S]*\\n' +
-            // [incompatible] '(?>' +
-            // [incompatible]     '(?!\\1[ ]*\\n)' +	// Not a closing marker.
-            // [incompatible]     '.*\\n+' +
-            // [incompatible] ')+' +
-        ')'               +
+        '('                      +
+            '(?:'                +
+                '(?!\\1[ ]*\\n)' + // Not a closing marker.
+                '[\\s\\S]*\\n+'  +
+            ')'                  +
+        ')'                      +
         // Closing marker.
         '\\1[ ]*\\n',
         "mg"
