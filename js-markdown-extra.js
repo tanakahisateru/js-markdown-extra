@@ -2023,7 +2023,7 @@ MarkdownExtra_Parser.prototype.doFencedCodeBlocks = function(text) {
  * Params:
  * $text - string to process with html <p> tags
  */
-Markdown_Parser.prototype.formParagraphs = function(text) {
+MarkdownExtra_Parser.prototype.formParagraphs = function(text) {
 
     // Strip leading and trailing lines:
     text = this.__wrapSTXETX__(text);
@@ -2063,8 +2063,6 @@ Markdown_Parser.prototype.formParagraphs = function(text) {
 
     return text;
 }
-
-
 
 // ### Footnotes
 
