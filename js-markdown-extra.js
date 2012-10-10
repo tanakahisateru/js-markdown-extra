@@ -72,42 +72,6 @@ function Markdown(text) {
 }
 
 /**
- *
- */
-function _preg_quote(text) {
-  if(!arguments.callee.sRE) {
-    arguments.callee.sRE = /(\/|\.|\*|\+|\?|\||\(|\)|\[|\]|\{|\}\\)/g;
-  }
-  return text.replace(arguments.callee.sRE, '\\$1');
-}
-
-function _str_repeat(str, n) {
-    var tmp = str;
-    for(var i = 1; i < n; i++) {
-        tmp += str;
-    }
-    return tmp;
-}
-
-function _trim(target, charlist) {
-    var chars = charlist || " \t\n\r";
-    return target.replace(
-        new RegExp("^[" + chars + "]*|[" + chars + "]*$", "g"), ""
-    );
-}
-
-function _rtrim(target, charlist) {
-    var chars = charlist || " \t\n\r";
-    return target.replace(
-        new RegExp( "[" + chars + "]*$", "g" ), ""
-    );
-}
-
-function _htmlspecialchars_ENT_NOQUOTES(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/**
  * Constructor function. Initialize appropriate member variables.
  */
 function Markdown_Parser() {
@@ -186,16 +150,16 @@ Markdown_Parser.prototype.init = function() {
     //    str_repeat('(?>\\)))*', this.nested_url_parenthesis_depth)
     //);
     this.nested_brackets_re =
-        _str_repeat('(?:[^\\[\\]]+|\\[', this.nested_brackets_depth) +
-        _str_repeat('\\])*', this.nested_brackets_depth);
+        this._php_str_repeat('(?:[^\\[\\]]+|\\[', this.nested_brackets_depth) +
+        this._php_str_repeat('\\])*', this.nested_brackets_depth);
     this.nested_url_parenthesis_re =
-        _str_repeat('(?:[^\\(\\)\\s]+|\\(', this.nested_url_parenthesis_depth) +
-        _str_repeat('(?:\\)))*', this.nested_url_parenthesis_depth);
+        this._php_str_repeat('(?:[^\\(\\)\\s]+|\\(', this.nested_url_parenthesis_depth) +
+        this._php_str_repeat('(?:\\)))*', this.nested_url_parenthesis_depth);
 
     // Table of hash values for escaped characters:
     var tmp = []
     for(var i = 0; i < this.escape_chars.length; i++) {
-        tmp.push(_preg_quote(this.escape_chars.charAt(i)));
+        tmp.push(this._php_preg_quote(this.escape_chars.charAt(i)));
     }
     this.escape_chars_re = new RegExp('[' + tmp.join('') + ']');
 
@@ -250,6 +214,43 @@ Markdown_Parser.prototype.__unwrapSTXETX__ = function(text) {
     if(text.charAt(text.length - 1) == '\x03') { text = text.substr(0, text.length - 1); }
     return text;
 };
+
+/**
+ *
+ */
+Markdown_Parser.prototype._php_preg_quote = function(text) {
+  if(!arguments.callee.sRE) {
+    arguments.callee.sRE = /(\/|\.|\*|\+|\?|\||\(|\)|\[|\]|\{|\}\\)/g;
+  }
+  return text.replace(arguments.callee.sRE, '\\$1');
+};
+
+Markdown_Parser.prototype._php_str_repeat = function(str, n) {
+    var tmp = str;
+    for(var i = 1; i < n; i++) {
+        tmp += str;
+    }
+    return tmp;
+};
+
+Markdown_Parser.prototype._php_trim = function(target, charlist) {
+    var chars = charlist || " \t\n\r";
+    return target.replace(
+        new RegExp("^[" + chars + "]*|[" + chars + "]*$", "g"), ""
+    );
+};
+
+Markdown_Parser.prototype._php_rtrim = function(target, charlist) {
+    var chars = charlist || " \t\n\r";
+    return target.replace(
+        new RegExp( "[" + chars + "]*$", "g" ), ""
+    );
+};
+
+Markdown_Parser.prototype._php_htmlspecialchars_ENT_NOQUOTES = function(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+};
+
 
 /**
  * Called before the transformation process starts to setup parser 
@@ -357,7 +358,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
             ')*'             +
         ')?';
     var content =
-        _str_repeat(
+        this._php_str_repeat(
             '(?:'                  +
                 '[^<]+'            + // content without tag
             '|'                    +
@@ -370,7 +371,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
             nested_tags_level
         )                          + // end of opening tag
         '.*?'                      + // last level nested tag content
-        _str_repeat(
+        this._php_str_repeat(
                    '</\\2\\s*>'    + // closing nested tag
                 ')'                +
                 '|'                +
@@ -1020,7 +1021,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
         //console.log(item, [leading_line ? leading_line.length : 0, tailing_blank_line ? tailing_blank_line.length : 0]);
         if (leading_line || tailing_blank_line || item.match(/\n{2,}/)) {
             // Replace marker with the appropriate whitespace indentation
-            item = leading_space + _str_repeat(' ', marker_space.length) + item;
+            item = leading_space + self._php_str_repeat(' ', marker_space.length) + item;
             item = self.runBlockGamut(self.outdent(item) + "\n");
         }
         else {
@@ -1057,7 +1058,7 @@ Markdown_Parser.prototype.doCodeBlocks = function(text) {
     ), function(match, codeblock) {
         //console.log(match);
         codeblock = self.outdent(codeblock);
-        codeblock = _htmlspecialchars_ENT_NOQUOTES(codeblock);
+        codeblock = self._php_htmlspecialchars_ENT_NOQUOTES(codeblock);
 
         // trim leading newlines and trailing newlines
         codeblock = self.__wrapSTXETX__(codeblock);
@@ -1075,7 +1076,7 @@ Markdown_Parser.prototype.doCodeBlocks = function(text) {
  * Create a code span markup for $code. Called from handleSpanToken.
  */
 Markdown_Parser.prototype.makeCodeSpan = function(code) {
-    code = _htmlspecialchars_ENT_NOQUOTES(_trim(code));
+    code = this._php_htmlspecialchars_ENT_NOQUOTES(this._php_trim(code));
     return this.hashPart("<code>" + code + "</code>");
 };
 
@@ -1174,7 +1175,7 @@ Markdown_Parser.prototype.doItalicsAndBold = function(text) {
             } else {
                 // Other closing marker: close one em or strong and
                 // change current token state to match the other
-                token_stack[0] = _str_repeat(token.charAt(0), 3 - token_len);
+                token_stack[0] = this._php_str_repeat(token.charAt(0), 3 - token_len);
                 tag = token_len == 2 ? "strong" : "em";
                 span = text_stack[0];
                 span = this.runSpanGamut(span);
@@ -1540,7 +1541,7 @@ Markdown_Parser.prototype.handleSpanToken = function(token, str) {
             return [this.hashPart("&#" + token.charCodeAt(1) + ";"), str];
         case "`":
             // Search for end marker in remaining text.
-            if (str.match(new RegExp('^(.*?[^`])' + _preg_quote(token) + '(?!`)(.*)$', 'm'))) {
+            if (str.match(new RegExp('^(.*?[^`])' + this._php_preg_quote(token) + '(?!`)(.*)$', 'm'))) {
                 str = RegExp.$2;
                 var codespan = this.makeCodeSpan(RegExp.$1);
                 return [this.hashPart(codespan), str];
@@ -1581,7 +1582,7 @@ Markdown_Parser.prototype.detab = function(text) {
             var block = blocks[i];
             // Calculate amount of space, insert spaces, insert block.
             var amount = self.tab_width - line.length % self.tab_width;
-            line += _str_repeat(" ", amount) + block;
+            line += self._php_str_repeat(" ", amount) + block;
         }
         return line;
     });
@@ -1699,8 +1700,8 @@ MarkdownExtra_Parser.prototype.setup = function() {
         if(this.abbr_word_re != '') {
             this.abbr_word_re += '|';
         }
-        this.abbr_word_re += _preg_quote(abbr_word); // ?? str -> re?
-        this.abbr_desciptions[abbr_word] = _trim(abbr_desc);
+        this.abbr_word_re += this._php_preg_quote(abbr_word); // ?? str -> re?
+        this.abbr_desciptions[abbr_word] = this._php_trim(abbr_desc);
     }
 };
 
@@ -1871,14 +1872,14 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
 
         var tag  = parts[1]; // Tag to handle.
         var text = parts[2]; // Remaining text after current tag.
-        var tag_re = _preg_quote(tag); // For use in a regular expression.
+        var tag_re = this._php_preg_quote(tag); // For use in a regular expression.
 
         //
         // Check for: Code span marker
         //
         if (tag.charAt(0) == "`") {
             // Find corresponding end marker.
-            tag_re = _preg_quote(tag);
+            tag_re = this._php_preg_quote(tag);
             if(matches = text.match(new RegExp('^(.+?|\\n[^\\n])*?[^`]' + tag_re + '[^`]'))) {
                 // End marker found: pass text unchanged until marker.
                 parsed += tag + matches[0];
@@ -1894,7 +1895,7 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
         //
         else if(tag.match(new RegExp('^\\n?[ ]{0,' + (indent + 3) * '}~'))) {
             // Fenced code block marker: find matching end marker.
-            tag_re = _preg_quote(_trim(tag));
+            tag_re = this._php_preg_quote(this._php_trim(tag));
             if(matches = text.match(new RegExp('^(?>.*\\n)+?[ ]{0,' + indent + '}' + tag_re + '[ ]*\\n'))) {
                 // End marker found: pass text unchanged until marker.
                 parsed += tag + matches[0];
@@ -2272,13 +2273,13 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
         text += "<tr>\n";
         for(var n = 0; n < headers.length; n++) {
             var header = headers[n];
-            text += "  <th" + attr[n] + ">" + self.runSpanGamut(_trim(header)) + "</th>\n";
+            text += "  <th" + attr[n] + ">" + self.runSpanGamut(self._php_trim(header)) + "</th>\n";
         }
         text += "</tr>\n";
         text += "</thead>\n";
 
         // Split content by row.
-        var rows = _trim(content, "\n").split("\n");
+        var rows = self._php_trim(content, "\n").split("\n");
 
         text += "<tbody>\n";
         for(var i = 0; i < rows.length; i++) {
@@ -2294,7 +2295,7 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
             text += "<tr>\n";
             for(var n = 0; n < row_cells.length; n++) {
                 var cell = row_cells[n];
-                text += "  <td" + attr[n] + ">" + self.runSpanGamut(_trim(cell)) + "</td>\n";
+                text += "  <td" + attr[n] + ">" + self.runSpanGamut(self._php_trim(cell)) + "</td>\n";
             }
             text += "</tr>\n";
         }
@@ -2415,7 +2416,7 @@ MarkdownExtra_Parser.prototype.doDefLists = function(text) {
 
         // Turn double returns into triple returns, so that we can make a
         // paragraph for the last item in a list, if necessary:
-        var result = _trim(self.processDefListItems(list));
+        var result = self._php_trim(self.processDefListItems(list));
         result = "<dl>\n" + result + "\n</dl>";
         return pre + self.hashBlock(result) + "\n\n";
     });
@@ -2452,11 +2453,11 @@ MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
         'mg'
     ), function(match, pre, terms_str) {
         // [portiong note] changed to list = $2 in order to reserve previously \n\n.
-        var terms = _trim(terms_str).split("\n");
+        var terms = self._php_trim(terms_str).split("\n");
         var text = '';
         for (var i = 0; i < terms.length; i++) {
             var term = terms[i];
-            term = self.runSpanGamut(_trim(term));
+            term = self.runSpanGamut(self._php_trim(term));
             text += "\n<dt>" + term + "</dt>";
         }
         return text + "\n";
@@ -2480,12 +2481,12 @@ MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
     ), function(match, leading_line, marker_space, def) {
         if (leading_line || def.match(/\n{2,}/)) {
             // Replace marker with the appropriate whitespace indentation
-            def = _str_repeat(' ', marker_space.length) + def;
+            def = self._php_str_repeat(' ', marker_space.length) + def;
             def = self.runBlockGamut(self.outdent(def + "\n\n"));
             def = "\n" + def + "\n";
         }
         else {
-            def = _rtrim(def);
+            def = self._php_rtrim(def);
             def = self.runSpanGamut(self.outdent(def));
         }
 
@@ -2528,9 +2529,9 @@ MarkdownExtra_Parser.prototype.doFencedCodeBlocks = function(text) {
         '\\1[ ]*\\n',
         "mg"
     ), function(match, m1, codeblock) {
-        codeblock = _htmlspecialchars_ENT_NOQUOTES(codeblock);
+        codeblock = self._php_htmlspecialchars_ENT_NOQUOTES(codeblock);
         codeblock = codeblock.replace(/^\n+/, function(match) {
-            return _str_repeat("<br" + self.empty_element_suffix, match.length);
+            return self._php_str_repeat("<br" + self.empty_element_suffix, match.length);
         });
         codeblock = "<pre><code>" + codeblock + "</code></pre>";
         return "\n\n" + self.hashBlock(codeblock) + "\n\n";
@@ -2564,7 +2565,7 @@ MarkdownExtra_Parser.prototype.formParagraphs = function(text) {
             // This case is replacement for PREG_SPLIT_NO_EMPTY.
             continue;
         }
-        value = _trim(this.runSpanGamut(value));
+        value = this._php_trim(this.runSpanGamut(value));
 
         // Check if this should be enclosed in a paragraph.
         // Clean tag hashes & block tag hashes are left alone.
@@ -2742,8 +2743,8 @@ MarkdownExtra_Parser.prototype.stripAbbreviations = function(text) {
         if (self.abbr_word_re != '') {
             self.abbr_word_re += '|';
         }
-        self.abbr_word_re += _preg_quote(abbr_word);
-        self.abbr_desciptions[abbr_word] = _trim(abbr_desc);
+        self.abbr_word_re += self._php_preg_quote(abbr_word);
+        self.abbr_desciptions[abbr_word] = self._php_trim(abbr_desc);
         return ''; // String that will replace the block
     });
     return text;
