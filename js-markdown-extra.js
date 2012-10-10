@@ -1741,7 +1741,7 @@ MarkdownExtra_Parser.prototype.hashHTMLBlocks = function(text) {
     text = r[0];
 
     return text;
-}
+};
 
 /**
  * Parse markdown text, calling _HashHTMLBlocks_InHTML for block tags.
@@ -1980,7 +1980,7 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
     } while(depth >= 0);
 
     return [parsed, text];
-}
+};
 
 /**
  * Parse HTML, calling _HashHTMLBlocks_InMarkdown for block tags.
@@ -2160,7 +2160,7 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inHTML = function(text, hash_meth
     parsed += hash_method.call(this, block_text);
 
     return [parsed, text];
-}
+};
 
 
 /**
@@ -2170,7 +2170,7 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inHTML = function(text, hash_meth
  */
 MarkdownExtra_Parser.prototype.hashClean = function(text) {
     return this.hashPart(text, 'C');
-}
+};
 
 
 /**
@@ -2232,7 +2232,7 @@ MarkdownExtra_Parser.prototype.doHeaders = function(text) {
     });
 
     return text;
-}
+};
 
 /**
  * Form HTML tables.
@@ -2367,7 +2367,7 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
     text = this.__unwrapSTXETX__(text);
 
     return text;
-}
+};
 
 /**
  * Form HTML definition lists.
@@ -2423,7 +2423,7 @@ MarkdownExtra_Parser.prototype.doDefLists = function(text) {
     text = this.__unwrapSTXETX__(text);
 
     return text;
-}
+};
 
 /**
  * Process the contents of a single definition list, splitting it
@@ -2496,7 +2496,7 @@ MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
     list_str = this.__unwrapSTXETX__(list_str);
 
     return list_str;
-}
+};
 
 /**
  * Adding the fenced code block syntax to regular Markdown:
@@ -2539,7 +2539,7 @@ MarkdownExtra_Parser.prototype.doFencedCodeBlocks = function(text) {
     text = this.__unwrapSTXETX__(text);
 
     return text;
-}
+};
 
 /**
  * Params:
@@ -2584,7 +2584,7 @@ MarkdownExtra_Parser.prototype.formParagraphs = function(text) {
     text = this.unhash(text);
 
     return text;
-}
+};
 
 // ### Footnotes
 
