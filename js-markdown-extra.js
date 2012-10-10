@@ -1841,12 +1841,13 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
         // by the pattern.
         //
         var parts_available = text.match(block_tag_re); //PREG_SPLIT_DELIM_CAPTURE
-        // If end of $text has been reached. Stop loop.
+        var parts;
         if(!parts_available) {
-            text = "";
-            break;
+            parts = [text];
         }
-        var parts = [RegExp.leftContext, RegExp.lastMatch, RegExp.rightContext];
+        else {
+            parts = [RegExp.leftContext, RegExp.lastMatch, RegExp.rightContext];
+        }
 
         // If in Markdown span mode, add a empty-string span-level hash 
         // after each newline to prevent triggering any block element.
@@ -1857,6 +1858,12 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
         }
 
         parsed += parts[0]; // Text before current tag.
+
+        // If end of $text has been reached. Stop loop.
+        if(!parts_available) {
+            text = "";
+            break;
+        }
 
         var tag  = parts[1]; // Tag to handle.
         var text = parts[2]; // Remaining text after current tag.
@@ -2642,7 +2649,7 @@ MarkdownExtra_Parser.prototype.appendFootnotes = function(text) {
             }
             if (self.fn_link_title != "") {
                 var title = self.fn_link_title;
-                $title = self.encodeAttribute(title);
+                title = self.encodeAttribute(title);
                 attr += " title=\"" + title +"\"";
             }
 
