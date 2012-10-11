@@ -1490,8 +1490,9 @@ Markdown_Parser.prototype.parseSpan = function(str) {
             '('                          +
                 '\\\\' + this.escape_chars_re +
             '|'                          +
-                '([^`\\\\]?)'            + // $2
-                '(`+)'                   + // $3 // code span marker
+                // This expression is too difficult for JS: '(?<![`\\\\])'
+                // Resoled by hand coded process.
+                '`+'                     + // code span marker
         (this.no_markup ? '' : (
             '|'                          +
                 '<!--.*?-->'             + // comment
@@ -1516,9 +1517,19 @@ Markdown_Parser.prototype.parseSpan = function(str) {
         //
         var parts = str.match(span_re); //PREG_SPLIT_DELIM_CAPTURE
         if(parts) {
-            output += RegExp.leftContext + (RegExp.$2 ? RegExp.$2 : '');
-            var r = this.handleSpanToken(RegExp.$3 ? RegExp.$3 : RegExp.lastMatch, RegExp.rightContext);
-            output = r[0];
+            if(RegExp.leftContext) {
+                output += RegExp.leftContext;
+            }
+            // Back quote but after backslash is to be ignored.
+            if(RegExp.lastMatch.charAt(0) == "`" &&
+               RegExp.leftContext.charAt(RegExp.leftContext.length - 1) == "\\"
+            ) {
+                output += RegExp.lastMatch;
+                str = RegExp.rightContext;
+                continue;
+            }
+            var r = this.handleSpanToken(RegExp.lastMatch, RegExp.rightContext);
+            output += r[0]
             str = r[1];
         }
         else {
@@ -1541,9 +1552,10 @@ Markdown_Parser.prototype.handleSpanToken = function(token, str) {
             return [this.hashPart("&#" + token.charCodeAt(1) + ";"), str];
         case "`":
             // Search for end marker in remaining text.
-            if (str.match(new RegExp('^(.*?[^`])' + this._php_preg_quote(token) + '(?!`)(.*)$', 'm'))) {
+            if (str.match(new RegExp('^([\\s\\S]*?[^`])' + this._php_preg_quote(token) + '(?!`)([\\s\\S]*)$', 'm'))) {
+                var code = RegExp.$1;
                 str = RegExp.$2;
-                var codespan = this.makeCodeSpan(RegExp.$1);
+                var codespan = this.makeCodeSpan(code);
                 return [this.hashPart(codespan), str];
             }
             return [token, str]; // return as text since no ending marker found.
