@@ -78,7 +78,7 @@ function Markdown_Parser() {
 
     this.nested_brackets_depth = 6;
     this.nested_url_parenthesis_depth = 4;
-    this.escape_chars = "\\`*_{}[]()>#+-.!";
+    this.escape_chars = "\\\\`*_{}[]()>#+-.!";
 
     // Document transformations
     this.document_gamut = [
@@ -161,7 +161,7 @@ Markdown_Parser.prototype.init = function() {
     for(var i = 0; i < this.escape_chars.length; i++) {
         tmp.push(this._php_preg_quote(this.escape_chars.charAt(i)));
     }
-    this.escape_chars_re = new RegExp('[' + tmp.join('') + ']');
+    this.escape_chars_re = '[' + tmp.join('') + ']';
 
     // Change to ">" for HTML output.
     this.empty_element_suffix = MARKDOWN_EMPTY_ELEMENT_SUFFIX;
