@@ -2192,7 +2192,7 @@ MarkdownExtra_Parser.prototype.doHeaders = function(text) {
     var self = this;
 
     function _doHeaders_attr(attr) {
-        if(attr == "") {  return ""; }
+        if(typeof(attr) === 'undefined' || attr == "") {  return ""; }
         return " id=\"" + attr + "\"";
     }
 
