@@ -370,6 +370,12 @@ Full-Width Styles
   padding-top: 40px;
 }
 
+.announcement {
+    padding: 8px;
+    border: 1px solid #F88;
+    background: #FEE;
+}
+
 #footer_wrap {
   background: #212121;
 }

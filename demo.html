@@ -11,12 +11,12 @@
     <title>js-markdown-extra</title>
 
     <script src="https://raw.github.com/tanakahisateru/js-markdown-extra/master/js-markdown-extra.js"></script>
-    <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
 
     <style>
-    #mdtext { width:90%; height:430px; border:1px solid gray; }
+    #mdtext { width:90%; height:430px; font-size:10pt; font-family:monospace; border:1px solid gray; }
     #result { height:200px; overflow:scroll; border:1px solid gray; padding:0.5em; }
-    #result-src { width:auto; height:200px; font-size:10pt; overflow:scroll; border:1px solid gray; padding:0.5em; }
+    #result-src { width:auto; height:200px; font-size:10pt; font-family:monospace; overflow:scroll; border:1px solid gray; padding:0.5em; }
     #result img { width: auto; height:auto; }
     </style>
     <script>
@@ -77,21 +77,21 @@ _italic_   __bold__
 
 LINKS
 ---------------
-Inline:
+Inline:  
 An [example](http://url.com/ "Title")
 
-Reference-style labels (titles are optional):
-An [example][id]. Then, anywhere  
+Reference-style labels (titles are optional):  
+An [example][id] or [id]. Then, anywhere  
 else in the doc, define the link:
 
   [id]: http://example.com/  "Title"
 
 IMAGES
 ---------------
-Inline (titles are optional):
+Inline (titles are optional):  
 ![alt text](images/blacktocat.png "Title")
 
-Reference-style:
+Reference-style:  
 ![alt text][id]
 
   [id]: images/blacktocat.png "Title"
@@ -168,6 +168,14 @@ This is a normal paragraph.
     This is a preformatted
     code block.
 
+Fenced code block enables writing code block without indent.
+
+~~~~
+This is also preformatted
+
+   code block.
+~~~~
+
 HORIZONTAL RULES
 ---------------
 Three or more dashes or asterisks:
@@ -225,12 +233,12 @@ term
 
 term
  : definithion
- : is here
+   is here
 
 term
  : definithion
 
- : can have multi paragraph
+   can have multi paragraph
 
 Auto link
 -----------------
