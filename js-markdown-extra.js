@@ -635,7 +635,7 @@ Markdown_Parser.prototype.doAnchors = function(text) {
 
     var _doAnchors_reference_callback = function(match, whole_match, link_text, link_id) {
         //console.log(match);
-        if (link_id == "") {
+        if(typeof(link_id) !== 'string') {
             // for shortcut links like [this][] or [this].
             link_id = link_text;
         }
@@ -735,9 +735,9 @@ Markdown_Parser.prototype.doAnchors = function(text) {
     text = text.replace(new RegExp(
         '('                  + // wrap whole match in $1
           '\\['              +
-            ' +([^\\[\\]]+)' + // link text = $2; can\'t contain [ or ]
-          ' +\\]'            +
-        ' +)'), _doAnchors_reference_callback
+              '([^\\[\\]]+)' + // link text = $2; can\'t contain [ or ]
+          '\\]'              +
+        ')'), _doAnchors_reference_callback
     );
 
     this.in_anchor = false;
