@@ -617,7 +617,7 @@ Markdown_Parser.prototype.runSpanGamut = function(text) {
  */
 Markdown_Parser.prototype.doHardBreaks = function(text) {
     var self = this;
-    return text.replace(/ {2,}\n/, function(match) {
+    return text.replace(/ {2,}\n/mg, function(match) {
         //console.log(match);
         return self.hashPart("<br" + self.empty_element_suffix + "\n");
     });
@@ -681,8 +681,9 @@ Markdown_Parser.prototype.doAnchors = function(text) {
           '\\['           +
             '(.*?)'       + // id = $3
           '\\]'           +
-        ')'), _doAnchors_reference_callback
-    );
+        ')',
+        'mg'
+    ), _doAnchors_reference_callback);
 
     //
     // Next, inline-style links: [link text](url "optional title")
@@ -707,25 +708,26 @@ Markdown_Parser.prototype.doAnchors = function(text) {
               '[ \\n]*'   + // ignore any spaces/tabs between closing quote and )
             ')?'          + // title is optional
           '\\)'           +
-        ')'), function(match, whole_match, link_text, url3, url4, x0, x1, title) {
-            //console.log(match);
-            link_text = self.runSpanGamut(link_text);
-            var url = url3 ? url3 : url4;
+        ')',
+        'mg'
+    ), function(match, whole_match, link_text, url3, url4, x0, x1, title) {
+        //console.log(match);
+        link_text = self.runSpanGamut(link_text);
+        var url = url3 ? url3 : url4;
 
-            url = self.encodeAttribute(url);
+        url = self.encodeAttribute(url);
 
-            var result = "<a href=\"" + url + "\"";
-            if (title !== undefined) {
-                title = self.encodeAttribute(title);
-                result +=  " title=\"" + title + "\"";
-            }
-
-            link_text = self.runSpanGamut(link_text);
-            result += ">" + link_text + "</a>";
-
-            return self.hashPart(result);
+        var result = "<a href=\"" + url + "\"";
+        if (title !== undefined) {
+            title = self.encodeAttribute(title);
+            result +=  " title=\"" + title + "\"";
         }
-    );
+
+        link_text = self.runSpanGamut(link_text);
+        result += ">" + link_text + "</a>";
+
+        return self.hashPart(result);
+    });
 
     //
     // Last, handle reference-style shortcuts: [link text]
@@ -737,8 +739,9 @@ Markdown_Parser.prototype.doAnchors = function(text) {
           '\\['              +
               '([^\\[\\]]+)' + // link text = $2; can\'t contain [ or ]
           '\\]'              +
-        ')'), _doAnchors_reference_callback
-    );
+        ')',
+        'mg'
+    ), _doAnchors_reference_callback);
 
     this.in_anchor = false;
     return text;
@@ -766,7 +769,8 @@ Markdown_Parser.prototype.doImages = function(text) {
             '(.*?)'      + // id = $3
           '\\]'          +
 
-        ')'
+        ')',
+        'mg'
     ), function(match, whole_match, alt_text, link_id) {
         //console.log(match);
         link_id = link_id.toLowerCase();
@@ -821,7 +825,8 @@ Markdown_Parser.prototype.doImages = function(text) {
               '[ \\n]*'    +
             ')?'           + // title is optional
           '\\)'            +
-        ')'
+        ')',
+        'mg'
     ), function(match, whole_match, alt_text, url3, url4, x5, x6, title) {
         //console.log(match);
         var url = url3 ? url3 : url4;
