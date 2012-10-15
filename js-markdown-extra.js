@@ -775,8 +775,8 @@ Markdown_Parser.prototype.doImages = function(text) {
         //console.log(match);
         link_id = link_id.toLowerCase();
 
-        if (link_id == "") {
-            $link_id = alt_text.toLowerCase(); // for shortcut links like ![this][].
+        if (typeof(link_id) !== 'string' || link_id === '') {
+            link_id = alt_text.toLowerCase(); // for shortcut links like ![this][].
         }
 
         alt_text = self.encodeAttribute(alt_text);
@@ -834,7 +834,7 @@ Markdown_Parser.prototype.doImages = function(text) {
         alt_text = self.encodeAttribute(alt_text);
         url = self.encodeAttribute(url);
         var result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
-        if (title !== undefined) {
+        if (typeof(title) !== 'undefined' && title !== '') {
             title = self.encodeAttribute(title);
             result +=  " title=\"" + title + "\""; // $title already quoted
         }
