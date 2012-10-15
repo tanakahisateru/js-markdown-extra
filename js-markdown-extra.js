@@ -477,7 +477,7 @@ Markdown_Parser.prototype.hashHTMLBlocks = function(text) {
  * that are word separators and "X" is used in the general case.
  */
 Markdown_Parser.prototype.hashPart = function(text, boundary) {
-    if(boundary === undefined) {
+    if('undefined' === typeof boundary) {
         boundary = 'X';
     }
     // Swap back any tag hash found in text so we do not have to `unhash`
@@ -485,7 +485,7 @@ Markdown_Parser.prototype.hashPart = function(text, boundary) {
     text = this.unhash(text);
 
     // Then hash the block.
-    if(arguments.callee.i === undefined) {
+    if('undefined' === typeof arguments.callee.i) {
         arguments.callee.i = 0;
     }
     var key = boundary + "\x1A" + (++arguments.callee.i) + boundary;
@@ -645,12 +645,12 @@ Markdown_Parser.prototype.doAnchors = function(text) {
         link_id = link_id.replace(/[ ]?\n/, ' ');
 
         var result;
-        if (self.urls[link_id] !== undefined) {
+        if ('undefined' !== typeof self.urls[link_id]) {
             var url = self.urls[link_id];
             url = self.encodeAttribute(url);
 
             result = "<a href=\"" + url + "\"";
-            if (self.titles[link_id] !== undefined) {
+            if ('undefined' !== typeof self.titles[link_id]) {
                 var title = self.titles[link_id];
                 title = self.encodeAttribute(title);
                 result +=  " title=\"" + title + "\"";
@@ -718,7 +718,7 @@ Markdown_Parser.prototype.doAnchors = function(text) {
         url = self.encodeAttribute(url);
 
         var result = "<a href=\"" + url + "\"";
-        if (title !== undefined) {
+        if ('undefined' !== typeof title && title !== '') {
             title = self.encodeAttribute(title);
             result +=  " title=\"" + title + "\"";
         }
@@ -781,10 +781,10 @@ Markdown_Parser.prototype.doImages = function(text) {
 
         alt_text = self.encodeAttribute(alt_text);
         var result;
-        if (self.urls[link_id] !== undefined) {
+        if ('undefined' !== typeof self.urls[link_id]) {
             var url = self.encodeAttribute(self.urls[link_id]);
             result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
-            if (self.titles[link_id] !== undefined) {
+            if ('undefined' !== typeof self.titles[link_id]) {
                 var title = self.titles[link_id];
                 title = self.encodeAttribute(title);
                 result +=  " title=\"" + title + "\"";
@@ -834,7 +834,7 @@ Markdown_Parser.prototype.doImages = function(text) {
         alt_text = self.encodeAttribute(alt_text);
         url = self.encodeAttribute(url);
         var result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
-        if (typeof(title) !== 'undefined' && title !== '') {
+        if ('undefined' !== typeof title && title !== '') {
             title = self.encodeAttribute(title);
             result +=  " title=\"" + title + "\""; // $title already quoted
         }
@@ -999,7 +999,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
     // change the syntax rules such that sub-lists must start with a
     // starting cardinal number; e.g. "1." or "a.".
 
-    if(this.list_level === undefined) {
+    if('undefined' === typeof this.list_level) {
         this.list_level = 0;
     }
     this.list_level++;
@@ -1141,7 +1141,7 @@ Markdown_Parser.prototype.doItalicsAndBold = function(text) {
             var pre = "";
             var marker = parts[1];
             for(var mg = 2; mg < parts.length; mg += 2) {
-                if(parts[mg] !== undefined) {
+                if('undefined' !== typeof parts[mg]) {
                     pre = parts[mg];
                     marker = parts[mg + 1];
                     break;
@@ -1453,7 +1453,7 @@ Markdown_Parser.prototype.doAutoLinks = function(text) {
  *   With some optimizations by Milian Wolff.
  */
 Markdown_Parser.prototype.encodeEmailAddress = function(addr) {
-    if(typeof(arguments.callee.crctable) === 'undefined') {
+    if('undefined' === typeof arguments.callee.crctable) {
         arguments.callee.crctable =
             "00000000 77073096 EE0E612C 990951BA 076DC419 706AF48F E963A535 9E6495A3 " +
             "0EDB8832 79DCB8A4 E0D5E91E 97D2D988 09B64C2B 7EB17CBD E7B82D07 90BF1D91 " +
@@ -1830,9 +1830,9 @@ MarkdownExtra_Parser.prototype.hashHTMLBlocks = function(text) {
  * Returns an array of that form: ( processed text , remaining text )
  */
 MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, indent, enclosing_tag_re, span) {
-    if(typeof(indent) == 'undefined') { indent = 0; }
-    if(typeof(enclosing_tag_re) == 'undefined') { enclosing_tag_re = ''; }
-    if(typeof(span) == 'undefined') { span = false; }
+    if('undefined' === typeof indent) { indent = 0; }
+    if('undefined' === typeof enclosing_tag_re) { enclosing_tag_re = ''; }
+    if('undefined' === typeof span) { span = false; }
 
     if(text === '') { return ['', '']; }
 
@@ -2241,7 +2241,7 @@ MarkdownExtra_Parser.prototype.doHeaders = function(text) {
     var self = this;
 
     function _doHeaders_attr(attr) {
-        if(typeof(attr) === 'undefined' || attr == "") {  return ""; }
+        if('undefined' === typeof attr || attr == "") {  return ""; }
         return " id=\"" + attr + "\"";
     }
 
