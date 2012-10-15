@@ -635,7 +635,7 @@ Markdown_Parser.prototype.doAnchors = function(text) {
 
     var _doAnchors_reference_callback = function(match, whole_match, link_text, link_id) {
         //console.log(match);
-        if(typeof(link_id) !== 'string') {
+        if(typeof(link_id) !== 'string' || link_id === '') {
             // for shortcut links like [this][] or [this].
             link_id = link_text;
         }
