@@ -1,6 +1,6 @@
 # js-markdown-extra
 
-ver 1.2 (beta)  
+ver 1.2.0  
 based on PHP Markdown Extra 1.2,5  
 originally developed by [boumankan](http://bmky.net/product/js-markdown-extra/)
 
@@ -60,6 +60,9 @@ Free for modification, redistribution and embedding if copyright included.
 Shall we not be liable for any damages caused by this software.
 
 ### History ###
+
+#### 1.2.0 - 2012-10-16
+  Stable version as 1.2.0 released.
 
 #### 1.2 (beta) - 2012-10-11
   Completely rewritten based on PHP-Markdown-1.2.5.

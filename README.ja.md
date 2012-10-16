@@ -1,6 +1,6 @@
 # js-markdown-extra
 
-ver 1.2 (beta)  
+ver 1.2.0  
 based on PHP Markdown Extra 1.2.5
 originally developed by [暴満館](http://bmky.net/product/js-markdown-extra/)
 
@@ -59,6 +59,9 @@ BSDに基づくオープンソースウェアです。
 このスクリプトを利用して発生した障害・損失に関して当方は一切責任を負いません。
 
 ### 更新履歴 ###
+
+#### 1.2.0 - 2012-10-16
+  1.2.0として安定版をリリースしました。
 
 #### 1.2 (beta) - 2012-10-11
   PHP-Markdown-1.2.5 をベースに完全に書き直されました。
