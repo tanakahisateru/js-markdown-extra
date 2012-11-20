@@ -6,7 +6,7 @@ originally developed by [boumankan](http://bmky.net/product/js-markdown-extra/)
 
 ### What's this? ###
 
-js-markdown-extra is a experimental JapaScript port of PHP Markdown Extra.
+js-markdown-extra is a experimental JavaScript port of PHP Markdown Extra.
 
 [PHP Markdown Extra demo](http://www.michelf.com/projects/php-markdown/dingus/)
 
