@@ -1633,7 +1633,7 @@ Markdown_Parser.prototype.detab = function(text) {
     // tab characters. Then we reconstruct every line by adding the 
     // appropriate number of space between each blocks.
     var self = this;
-    return text.replace(/^.*\t.*$/m, function(line) {
+    return text.replace(/^.*\t.*$/mg, function(line) {
         //$strlen = $this->utf8_strlen; # strlen function for UTF-8.
         // Split in blocks.
         var blocks = line.split("\t");
