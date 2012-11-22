@@ -94,7 +94,7 @@ function Markdown_Parser() {
         ['doHorizontalRules', 20],
         ['doLists',           40],
         ['doCodeBlocks',      50],
-        ['doBlockQuotes',     60],
+        ['doBlockQuotes',     60]
     ];
 
     // These are all the transformations that occur *within* block-level
