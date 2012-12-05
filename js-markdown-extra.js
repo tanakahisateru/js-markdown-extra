@@ -2583,7 +2583,7 @@ MarkdownExtra_Parser.prototype.doFencedCodeBlocks = function(text) {
         '('                      +
             '(?:'                +
                 '(?!\\1[ ]*\\n)' + // Not a closing marker.
-                '[\\s\\S]*\\n+'  +
+                '[\\s\\S]*?\\n+' +
             ')'                  +
         ')'                      +
         // Closing marker.
