@@ -1,6 +1,6 @@
 # js-markdown-extra
 
-ver 1.2.0  
+ver 1.2.1  
 based on PHP Markdown Extra 1.2,5  
 originally developed by [boumankan](http://bmky.net/product/js-markdown-extra/)
 
@@ -61,6 +61,14 @@ Free for modification, redistribution and embedding if copyright included.
 Shall we not be liable for any damages caused by this software.
 
 ### History ###
+
+#### 1.2.1 - 2012-12-06
+  Bugfix version as 1.2.1 released.
+
+  * README fixed. #15
+  * Problem with tab characters fixed. #16
+  * Redundant comma removed. #17
+  * Multiple code block was concatenated unexpectedly. #18 #19
 
 #### 1.2.0 - 2012-10-16
   Stable version as 1.2.0 released.
