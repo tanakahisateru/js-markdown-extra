@@ -2451,16 +2451,18 @@ MarkdownExtra_Parser.prototype.doDefLists = function(text) {
           '('                     + // $4
               '(?=\\0x03)'        + // \z
             '|'                   +
-              '\\n{2,}'           +
-              '(?=\\S)'           +
-              '(?!'               + // Negative lookahead for another term
-                '[ ]{0,' + less_than_tab + '}' +
-                '(?:\\S.*\\n )+?' + // defined term
-                '\\n?'            +
-                '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
-              ')'                 +
-              '(?!'               + // Negative lookahead for another definition
-                '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
+              '(?='               +
+                '\\n{2,}'         +
+                '(?=\\S)'         +
+                '(?!'             + // Negative lookahead for another term
+                  '[ ]{0,' + less_than_tab + '}' +
+                  '(?:\\S.*\\n )+?' + // defined term
+                  '\\n?'          +
+                  '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
+                ')'               +
+                '(?!'             + // Negative lookahead for another definition
+                  '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
+                ')'               +
               ')'                 +
           ')'                     +
         ')'                       +
@@ -2532,7 +2534,7 @@ MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
             '[:][ ]+'                      + // definition mark (colon)
         ')'                                +
         '([\\s\\S]+?)'                     + // definition text = $3
-        '(?=\\n+'                          + // stop at next definition mark,
+        '(?=\\n*'                          + // stop at next definition mark,
             '(?:'                          + // next term or end of text
                 '[ ]{0,' + less_than_tab + '}[:][ ]|' +
                 '<dt>|\\x03'               + // \z
