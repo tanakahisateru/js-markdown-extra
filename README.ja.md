@@ -46,6 +46,7 @@ PHP Markdown Extraを互換性の無い正規表現で不完全に再現しよ�
 
 * [Markdown](http://daringfireball.net/projects/markdown/)
 * [PHP Markdown & PHP Markdown Extra](http://www.michelf.com/projects/php-markdown/)
+* [PHP Markdown on GitHub](https://github.com/michelf/php-markdown)
 * [js-markdown](http://rephrase.net/box/js-markdown/)
 
 ### ライセンス ###

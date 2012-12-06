@@ -47,6 +47,7 @@ under dual core CPU.**
 
 * [Markdown](http://daringfireball.net/projects/markdown/)
 * [PHP Markdown & PHP Markdown Extra](http://www.michelf.com/projects/php-markdown/)
+* [PHP Markdown on GitHub](https://github.com/michelf/php-markdown)
 * [js-markdown](http://rephrase.net/box/js-markdown/)
 
 ### License ###
