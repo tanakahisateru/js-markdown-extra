@@ -2443,7 +2443,7 @@ MarkdownExtra_Parser.prototype.doDefLists = function(text) {
         '('                       + // $1 = whole list
           '('                     + // $2
             '[ ]{0,' + less_than_tab + '}' +
-            '((?:.*\\S.*\\n)+)'   + // $3 = defined term
+            '((?:[ \\t]*\\S.*\\n)+)' + // $3 = defined term
             '\\n?'                +
             '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
           ')'                     +
