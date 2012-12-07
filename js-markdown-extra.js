@@ -2541,7 +2541,8 @@ MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
                                              // following line from \n+ to \n*.
         '(?=\\n*'                          + // stop at next definition mark,
             '(?:'                          + // next term or end of text
-                '[ ]{0,' + less_than_tab + '}[:][ ]|' +
+                '\\n[ ]{0,' + less_than_tab + '}[:][ ]|' + // [porting note] do not match
+                                                           // colon in the middle of a line
                 '<dt>|\\x03'               + // \z
             ')'                            +
         ')',
