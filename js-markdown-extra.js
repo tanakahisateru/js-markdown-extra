@@ -2443,7 +2443,12 @@ MarkdownExtra_Parser.prototype.doDefLists = function(text) {
         '('                       + // $1 = whole list
           '('                     + // $2
             '[ ]{0,' + less_than_tab + '}' +
-            '((?:.*\\S.*\\n)+)'   + // $3 = defined term
+            '((?:[ \\t]*\\S.*\\n)+)' + // $3 = defined term
+                                       // [porting note] Original regex from PHP is
+                                       // (?>.*\S.*\n), which matches a line with at
+                                       // least one non-space character. Change the
+                                       // first .* to [ \t]* stops unneccessary
+                                       // backtracking hence improves performance
             '\\n?'                +
             '[ ]{0,' + less_than_tab + '}:[ ]+' + // colon starting definition
           ')'                     +
