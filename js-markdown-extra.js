@@ -2451,7 +2451,9 @@ MarkdownExtra_Parser.prototype.doDefLists = function(text) {
           '('                     + // $4
               '(?=\\0x03)'        + // \z
             '|'                   +
-              '(?='               +
+              '(?='               + // [porting note] Our regex will consume leading
+                                    // newline characters so we will leave the newlines
+                                    // here for the next definition
                 '\\n{2,}'         +
                 '(?=\\S)'         +
                 '(?!'             + // Negative lookahead for another term
@@ -2534,6 +2536,9 @@ MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
             '[:][ ]+'                      + // definition mark (colon)
         ')'                                +
         '([\\s\\S]+?)'                     + // definition text = $3
+                                             // [porting note] Maybe no trailing
+                                             // newlines in our version, changed the
+                                             // following line from \n+ to \n*.
         '(?=\\n*'                          + // stop at next definition mark,
             '(?:'                          + // next term or end of text
                 '[ ]{0,' + less_than_tab + '}[:][ ]|' +
