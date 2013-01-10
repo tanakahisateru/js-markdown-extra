@@ -1,6 +1,6 @@
 {
   "name": "js-markdown-extra",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "PHP-Markdown-extra compatible Javascript markdown syntax parser",
   "main": "js-markdown-extra.js",
   "scripts": {
@@ -16,5 +16,5 @@
   "author": "Hisateru Tanaka",
   "license": "BSD",
   "readmeFilename": "README.md",
-  "gitHead": "9ed31388d03e0c552419bbe253ac27c7fd12ff9b"
+  "gitHead": "75eb66a756007c883144f8afb45073852eac1fdf"
 }
