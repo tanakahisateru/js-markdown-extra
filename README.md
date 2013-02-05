@@ -62,6 +62,10 @@ Shall we not be liable for any damages caused by this software.
 
 ### History ###
 
+#### master
+
+  * Unexpectedly separated definition list bug fixed. #23
+
 #### 1.2.2 - 2013-01-10
 
   * Performance and compatibility improved. #20 #21
