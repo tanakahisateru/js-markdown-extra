@@ -157,7 +157,7 @@ Markdown_Parser.prototype.init = function() {
         this._php_str_repeat('(?:\\)))*', this.nested_url_parenthesis_depth);
 
     // Table of hash values for escaped characters:
-    var tmp = []
+    var tmp = [];
     for(var i = 0; i < this.escape_chars.length; i++) {
         tmp.push(this._php_preg_quote(this.escape_chars.charAt(i)));
     }
@@ -191,7 +191,7 @@ Markdown_Parser.prototype.init = function() {
 
     // Status flag to avoid invalid nesting.
     this.in_anchor = false;
-}
+};
 
 /**
  * [porting note]
@@ -263,7 +263,7 @@ Markdown_Parser.prototype.setup = function() {
     this.html_hashes = {};
 
     this.in_anchor = false;
-}
+};
 
 /**
  * Called after the transformation process to clear any variable 
@@ -541,7 +541,7 @@ Markdown_Parser.prototype.stripLinkDefinitions = function(text) {
     );
     text = this.__unwrapSTXETX__(text);
     return text;
-}
+};
 
 /**
  * Run block gamut tranformations.
@@ -656,7 +656,7 @@ Markdown_Parser.prototype.doAnchors = function(text) {
                 result +=  " title=\"" + title + "\"";
             }
 
-            var link_text = self.runSpanGamut(link_text);
+            link_text = self.runSpanGamut(link_text);
             result += ">" + link_text + "</a>";
             result = self.hashPart(result);
         }
@@ -889,7 +889,7 @@ Markdown_Parser.prototype.doHeaders = function(text) {
     });
 
     return text;
-}
+};
 
 /**
  * Form HTML ordered (numbered) and unordered (bulleted) lists.
@@ -1006,7 +1006,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
 
     // trim trailing blank lines:
     list_str = this.__wrapSTXETX__(list_str);
-    var list_str = list_str.replace(/\n{2,}(?=\x03)/m, "\n");
+    list_str = list_str.replace(/\n{2,}(?=\x03)/m, "\n");
     list_str = this.__unwrapSTXETX__(list_str);
 
     var self = this;
@@ -1042,7 +1042,7 @@ Markdown_Parser.prototype.processListItems = function(list_str, marker_any_re) {
 
     this.list_level--;
     return list_str;
-}
+};
 
 /**
  *   Process Markdown `<pre><code>` blocks.
@@ -1291,7 +1291,7 @@ Markdown_Parser.prototype.doBlockQuotes = function(text) {
         return "\n" + self.hashBlock("<blockquote>\n" + bq + "\n</blockquote>") + "\n\n";
     });
     return text;
-}
+};
 
 /**
  * Params:
@@ -1375,7 +1375,7 @@ Markdown_Parser.prototype.formParagraphs = function(text) {
     }
 
     return grafs.join("\n\n");
-}
+};
 
 /**
  * Encode text for a double-quoted HTML attribute. This function
@@ -1506,14 +1506,15 @@ Markdown_Parser.prototype.encodeEmailAddress = function(addr) {
         return (crc ^ (-1)) >>> 0;
     }
 
-    var addr = "mailto:" + addr;
+    addr = "mailto:" + addr;
     var chars = [];
-    for(var i = 0; i < addr.length; i++) {
+    var i;
+    for(i = 0; i < addr.length; i++) {
         chars.push(addr.charAt(i));
     }
     var seed = Math.floor(Math.abs(_crc32(addr) / addr.length)); // # Deterministic seed.
 
-    for(var i = 0; i < chars.length; i++) {
+    for(i = 0; i < chars.length; i++) {
         var c = chars[i];
         var ord = c.charCodeAt(0);
         // Ignore non-ascii chars.
@@ -1584,7 +1585,7 @@ Markdown_Parser.prototype.parseSpan = function(str) {
                 continue;
             }
             var r = this.handleSpanToken(RegExp.lastMatch, RegExp.rightContext);
-            output += r[0]
+            output += r[0];
             str = r[1];
         }
         else {
@@ -1938,9 +1939,11 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
         }
 
         var tag  = parts[1]; // Tag to handle.
-        var text = parts[2]; // Remaining text after current tag.
+        text = parts[2]; // Remaining text after current tag.
         var tag_re = this._php_preg_quote(tag); // For use in a regular expression.
 
+        var t;
+        var block_text;
         //
         // Check for: Code span marker
         //
@@ -1994,8 +1997,8 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
             )
         ) {
             // Need to parse tag and following text using the HTML parser.
-            var t = this._hashHTMLBlocks_inHTML(tag + text, this.hashBlock, true);
-            var block_text = t[0];
+            t = this._hashHTMLBlocks_inHTML(tag + text, this.hashBlock, true);
+            block_text = t[0];
             text = t[1];
 
             // Make sure it stays outside of any paragraph by adding newlines.
@@ -2011,8 +2014,8 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
         ) {
             // Need to parse tag and following text using the HTML parser.
             // (don't check for markdown attribute)
-            var t = this._hashHTMLBlocks_inHTML(tag + text, this.hashClean, false);
-            var block_text = t[0];
+            t = this._hashHTMLBlocks_inHTML(tag + text, this.hashClean, false);
+            block_text = t[0];
             text = t[1];
 
             parsed += block_text;
@@ -2028,7 +2031,7 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
             // Increase/decrease nested tag count.
             //
             if (tag.charAt(1) == '/') depth--;
-            else if (tag.charAr(tag.length - 2) != '/') depth++;
+            else if (tag.charAt(tag.length - 2) != '/') depth++;
 
             if(depth < 0) {
                 //
@@ -2141,7 +2144,7 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inHTML = function(text, hash_meth
         var parts = [RegExp.leftContext, RegExp.lastMatch, RegExp.rightContext];
 
         block_text += parts[0]; // Text before current tag.
-        tag         = parts[1]; // Tag to handle.
+        var tag     = parts[1]; // Tag to handle.
         text        = parts[2]; // Remaining text after current tag.
 
         //
@@ -2181,6 +2184,7 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inHTML = function(text, hash_meth
                     tag.match(new RegExp('^<(?:' + this.contain_span_tags_re + ')\\b'));
 
                 // Calculate indent before tag.
+                var indent;
                 if (matches = block_text.match(/(?:^|\n)( *?)(?! ).*?$/)) {
                     //var strlen = this.utf8_strlen;
                     indent = matches[1].length; //strlen(matches[1], 'UTF-8');
@@ -2320,7 +2324,8 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
 
         // Reading alignement from header underline.
         var separators = underline.split(/[ ]*[|][ ]*/);
-        for(var n = 0; n < separators.length; n++) {
+        var n;
+        for(n = 0; n < separators.length; n++) {
             var s = separators[n];
             if (s.match(/^ *-+: *$/))       { attr[n] = ' align="right"'; }
             else if (s.match(/^ *:-+: *$/)) { attr[n] = ' align="center"'; }
@@ -2338,7 +2343,7 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
         var text = "<table>\n";
         text += "<thead>\n";
         text += "<tr>\n";
-        for(var n = 0; n < headers.length; n++) {
+        for(n = 0; n < headers.length; n++) {
             var header = headers[n];
             text += "  <th" + attr[n] + ">" + self.runSpanGamut(self._php_trim(header)) + "</th>\n";
         }
@@ -2360,7 +2365,7 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
             while(row_cells.length < col_count) { row_cells.push(''); }
 
             text += "<tr>\n";
-            for(var n = 0; n < row_cells.length; n++) {
+            for(n = 0; n < row_cells.length; n++) {
                 var cell = row_cells[n];
                 text += "  <td" + attr[n] + ">" + self.runSpanGamut(self._php_trim(cell)) + "</td>\n";
             }
@@ -2370,7 +2375,7 @@ MarkdownExtra_Parser.prototype.doTables = function(text) {
         text += "</table>";
 
         return self.hashBlock(text) + "\n";
-    }
+    };
 
     text = this.__wrapSTXETX__(text);
 
@@ -2508,7 +2513,7 @@ MarkdownExtra_Parser.prototype.doDefLists = function(text) {
 MarkdownExtra_Parser.prototype.processDefListItems = function(list_str) {
     var self = this;
 
-    less_than_tab = this.tab_width - 1;
+    var less_than_tab = this.tab_width - 1;
 
     list_str = this.__wrapSTXETX__(list_str);
 
@@ -2849,7 +2854,7 @@ MarkdownExtra_Parser.prototype.doAbbreviations = function(text) {
                 if (!desc || desc == "") {
                     return self.hashPart("<abbr>" + abbr + "</abbr>");
                 } else {
-                    var desc = self.encodeAttribute(desc);
+                    desc = self.encodeAttribute(desc);
                     return self.hashPart("<abbr title=\"" + desc + "\">" + abbr + "</abbr>");
                 }
             } else {
