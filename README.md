@@ -64,6 +64,7 @@ Shall we not be liable for any damages caused by this software.
 
 #### master
 
+  * Incompleted string/itaric bug fixed. #24
   * Unexpectedly separated definition list bug fixed. #23
 
 #### 1.2.2 - 2013-01-10
