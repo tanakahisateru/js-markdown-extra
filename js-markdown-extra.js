@@ -1122,6 +1122,7 @@ Markdown_Parser.prototype.doItalicsAndBold = function(text) {
     var tree_char_em = false;
     var text_stack = [''];
     var token_stack = [];
+    var token = '';
 
     while (1) {
         //
@@ -1148,17 +1149,22 @@ Markdown_Parser.prototype.doItalicsAndBold = function(text) {
                 }
             }
             //console.log([left + pre, marker]);
-            text_stack[0] += left + pre;
+            text_stack[0] += (left + pre);
             token = marker;
             text = right;
         }
         else {
             text_stack[0] += text;
+            token = '';
+            text = '';
+        }
+        if(token == '') {
             // Reached end of text span: empty stack without emitting.
             // any more emphasis.
             while (token_stack.length > 0 && token_stack[0].length > 0) {
                 text_stack[1] += token_stack.shift();
-                text_stack[0] += text_stack.shift();
+                var text_stack_prev0 = text_stack.shift(); // $text_stack[0] .= array_shift($text_stack);
+                text_stack[0] += text_stack_prev0;
             }
             break;
         }
