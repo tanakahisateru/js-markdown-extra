@@ -1,6 +1,6 @@
 # js-markdown-extra
 
-ver 1.2.2  
+ver 1.2.3
 based on PHP Markdown Extra 1.2.5  
 originally developed by [boumankan](http://bmky.net/product/js-markdown-extra/)
 
