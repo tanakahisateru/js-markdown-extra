@@ -62,7 +62,7 @@ Shall we not be liable for any damages caused by this software.
 
 ### History ###
 
-#### master
+#### 1.2.3 - 2013-03-08
 
   * Incompleted string/itaric bug fixed. #24
   * Unexpectedly separated definition list bug fixed. #23
