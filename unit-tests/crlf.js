@@ -24,9 +24,7 @@ QUnit.test( "01 - LF", function() {
 		'###### Header 6' + "\n";	
 	
 	var result = Markdown(input);
-	console.log(result);
-	
-    QUnit.assert.equal(result, expected, "Unexpected result!");
+	QUnit.assert.equal(result, expected);
 });
 
 /* 
@@ -50,7 +48,5 @@ QUnit.test( "02 - CRLF", function() {
 		'###### Header 6' + "\r\n";	
 	
 	var result = Markdown(input);
-	console.log(result);
-	
-    QUnit.assert.equal(result, expected, "Unexpected result!");
+	QUnit.assert.equal(result, expected);
 });
