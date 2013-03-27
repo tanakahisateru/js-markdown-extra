@@ -287,7 +287,7 @@ Markdown_Parser.prototype.transform = function(text) {
 
     // Standardize line endings:
     //   DOS to Unix and Mac to Unix
-    text = text.replace(/\r\n?/, "\n", text);
+    text = text.replace(/\r\n?/g, "\n", text);
 
     // Make sure $text ends with a couple of newlines:
     text += "\n\n";
