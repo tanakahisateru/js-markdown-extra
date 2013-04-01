@@ -15,5 +15,8 @@
   ],
   "author": "Hisateru Tanaka",
   "license": "BSD",
-  "readmeFilename": "README.md"
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "qunit-cli": "~0.1.3"
+  }
 }
