@@ -1,3 +1,3 @@
-require('./unit-tests/all.js');
-require('./unit-tests/crlf.js');
+require('./tests/all.js');
+require('./tests/crlf.js');
 
