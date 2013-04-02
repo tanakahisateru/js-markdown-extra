@@ -506,3 +506,26 @@ QUnit.test("ALL", function() {
     QUnit.assert.equal(result, expected);
 });
 
+/**
+ * Bold
+ */
+QUnit.test("Bold", function() {
+    var input =
+        '*italic*   **bold**  ' + "\n" +
+        '_italic_   __bold__' + "\n" +
+        '' + "\n" +
+        'this_text_is_normal  ' + "\n" +
+        '_this text_is italic_' + "\n" +
+        "";
+
+    var expected =
+        '<p><em>italic</em>   <strong>bold</strong><br />'+"\n"+
+        '<em>italic</em>   <strong>bold</strong></p>'+"\n"+
+        ''+"\n"+
+        '<p>this_text_is_normal<br />'+"\n"+
+        '<em>this text_is italic</em></p>'+"\n"+
+        "";
+
+    var result = Markdown(input);
+    QUnit.assert.equal(result, expected);
+});

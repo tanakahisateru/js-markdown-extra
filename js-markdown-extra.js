@@ -1142,7 +1142,7 @@ Markdown_Parser.prototype.doItalicsAndBold = function(text) {
             var pre = "";
             var marker = parts[1];
             for(var mg = 2; mg < parts.length; mg += 2) {
-                if('undefined' !== typeof parts[mg]) {
+                if('undefined' !== typeof parts[mg] && parts[mg] != '') {
                     pre = parts[mg];
                     marker = parts[mg + 1];
                     break;
@@ -1222,7 +1222,8 @@ Markdown_Parser.prototype.doItalicsAndBold = function(text) {
                 // Unwind any dangling emphasis marker:
                 if (token_stack[0].length == 1) {
                     text_stack[1] += token_stack.shift();
-                    text_stack[0] += text_stack.shift();
+                    var text_stack_prev0 = text_stack.shift(); // $text_stack[0] .= array_shift($text_stack);
+                    text_stack[0] += text_stack_prev0;
                 }
                 // Closing strong marker:
                 token_stack.shift();
