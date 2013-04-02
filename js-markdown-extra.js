@@ -1530,7 +1530,7 @@ Markdown_Parser.prototype.encodeEmailAddress = function(addr) {
     }
 
     addr = chars.join('');
-    var text = chars.splice(7).join(''); // text without `mailto:`
+    var text = chars.splice(7, chars.length - 1).join(''); // text without `mailto:`
     addr = "<a href=\"" + addr + "\">" + text + "</a>";
 
     return addr;
