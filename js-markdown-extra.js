@@ -669,65 +669,82 @@ Markdown_Parser.prototype.doAnchors = function(text) {
     //
     // First, handle reference-style links: [link text] [id]
     //
-    text = text.replace(new RegExp(
-        '('               + // wrap whole match in $1
-          '\\['           +
-            '(' + this.nested_brackets_re + ')' +  // link text = $2
-          '\\]'           +
+	// [porting note] the cheatText and conditional
+	// are simply checks that look and see whether the regex will
+	// be able to find a match. If we don't do this here we can get caught in
+	// a situation where backtracking grows exponentially.
+	// This helps us keep the same regex as the upstream PHP impl, but still be safe/fast
+	var cheatText = text.replace(/[^\[^\]\n]/gm, '');
+	if ((cheatText.indexOf('[][]') !== -1) || (cheatText.indexOf('[]\n[]') !== -1)) {
+		text = text.replace(new RegExp(
+			'('               + // wrap whole match in $1
+				'\\['           +
+				'(' + this.nested_brackets_re + ')' +  // link text = $2
+				'\\]'           +
 
-          '[ ]?'          + // one optional space
-          '(?:\\n[ ]*)?'  + // one optional newline followed by spaces
+				'[ ]?'          + // one optional space
+				'(?:\\n[ ]*)?'  + // one optional newline followed by spaces
 
-          '\\['           +
-            '(.*?)'       + // id = $3
-          '\\]'           +
-        ')',
-        'mg'
-    ), _doAnchors_reference_callback);
+				'\\['           +
+				'(.*?)'       + // id = $3
+				'\\]'           +
+				')',
+			'mg'
+		), _doAnchors_reference_callback);
+	}
 
     //
     // Next, inline-style links: [link text](url "optional title")
     //
-    text = text.replace(new RegExp(
-        '('               + // wrap whole match in $1
-          '\\['           +
-            '(' + this.nested_brackets_re + ')' + // link text = $2
-          '\\]'           +
-          '\\('           + // literal paren
-            '[ \\n]*'     +
-            '(?:'         +
+	// [porting note] the cheatText and conditional
+	// are simply checks that look and see whether the regex will
+	// be able to find a match. If we don't do this here we can get caught in
+	// a situation where backtracking grows exponentially.
+	// This helps us keep the same regex as the upstream PHP impl, but still be safe/fast
+	cheatText = text.replace(/[^\]^\[^\(^\)]/gm, '');
+	if ((cheatText.indexOf("[]()") !== -1) || (cheatText.indexOf("[](\"\")") !== -1)) {
+		text = text.replace(new RegExp(
+			'('               + // wrap whole match in $1
+				'\\['           +
+				'(' + this.nested_brackets_re + ')' + // link text = $2
+				'\\]'           +
+				'\\('           + // literal paren
+				'[ \\n]*'     +
+				'(?:'         +
                 '<(.+?)>' + // href = $3
-            '|'           +
+				'|'           +
                 '(' + this.nested_url_parenthesis_re + ')' + // href = $4
-            ')'           +
-            '[ \\n]*'     +
-            '('           + // $5
-              '([\'"])'   + // quote char = $6
-              '(.*?)'     + // Title = $7
-              '\\6'       + // matching quote
-              '[ \\n]*'   + // ignore any spaces/tabs between closing quote and )
-            ')?'          + // title is optional
-          '\\)'           +
-        ')',
-        'mg'
-    ), function(match, whole_match, link_text, url3, url4, x0, x1, title) {
-        //console.log(match);
-        link_text = self.runSpanGamut(link_text);
-        var url = url3 ? url3 : url4;
+				')'           +
+				'[ \\n]*'     +
+				'('           + // $5
+				'([\'"])'   + // quote char = $6
+				'(.*?)'     + // Title = $7
+				'\\6'       + // matching quote
+				'[ \\n]*'   + // ignore any spaces/tabs between closing quote and )
+				')?'          + // title is optional
+				'\\)'           +
+				')',
+			'mg'
+		), function(match, whole_match, link_text, url3, url4, x0, x1, title) {
+			//console.log(match);
+			link_text = self.runSpanGamut(link_text);
+			var url = url3 ? url3 : url4;
 
-        url = self.encodeAttribute(url);
+			url = self.encodeAttribute(url);
 
-        var result = "<a href=\"" + url + "\"";
-        if ('undefined' !== typeof title && title !== '') {
-            title = self.encodeAttribute(title);
-            result +=  " title=\"" + title + "\"";
-        }
+			var result = "<a href=\"" + url + "\"";
+			if ('undefined' !== typeof title && title !== '') {
+				title = self.encodeAttribute(title);
+				result +=  " title=\"" + title + "\"";
+			}
 
-        link_text = self.runSpanGamut(link_text);
-        result += ">" + link_text + "</a>";
+			link_text = self.runSpanGamut(link_text);
+			result += ">" + link_text + "</a>";
 
-        return self.hashPart(result);
-    });
+			return self.hashPart(result);
+		});
+	}
+
 
     //
     // Last, handle reference-style shortcuts: [link text]
