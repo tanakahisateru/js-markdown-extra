@@ -1964,10 +1964,10 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
         //
         // Check for: Fenced code block marker.
         //
-        else if(tag.match(new RegExp('^\\n?[ ]{0,' + (indent + 3) * '}~'))) {
+        else if(tag.match(new RegExp('^\\n?[ ]{0,' + (indent + 3) + '}~'))) {
             // Fenced code block marker: find matching end marker.
             tag_re = this._php_preg_quote(this._php_trim(tag));
-            if(matches = text.match(new RegExp('^(?>.*\\n)+?[ ]{0,' + indent + '}' + tag_re + '[ ]*\\n'))) {
+            if(matches = text.match(new RegExp('^(?:.*\\n)+?[ ]{0,' + indent + '}' + tag_re + '[ ]*\\n'))) {
                 // End marker found: pass text unchanged until marker.
                 parsed += tag + matches[0];
                 text = text.substr(matches[0].length);
