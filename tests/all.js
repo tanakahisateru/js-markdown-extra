@@ -8,9 +8,6 @@ if (typeof require != 'undefined') {
 }
 QUnit.module( "ALL Syntax test" );
 
-// Used - http://www.howtocreate.co.uk/tutorials/jsexamples/syntax/prepareInline.html
-var expected = '<h1>Syntax Cheatsheet<\/h1>\n\n<h2>PHRASE EMPHASIS<\/h2>\n\n<p><em>italic<\/em>   <strong>bold<\/strong>\n<em>italic<\/em>   <strong>bold<\/strong><\/p>\n\n<h1>Header 1<\/h1>\n\n<h2>Header 2<\/h2>\n\n<h1>Header 1<\/h1>\n\n<h2>Header 2<\/h2>\n\n<h6>Header 6<\/h6>\n';
-
 /**
  * ALL
  */
