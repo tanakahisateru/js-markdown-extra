@@ -701,7 +701,7 @@ Markdown_Parser.prototype.doAnchors = function(text) {
 	// be able to find a match. If we don't do this here we can get caught in
 	// a situation where backtracking grows exponentially.
 	// This helps us keep the same regex as the upstream PHP impl, but still be safe/fast
-	cheatText = text.replace(/[^\]^\[^\(^\)]/gm, '');
+    cheatText = text.replace(/[^\(^\)^\[^\]^\s]/gm, '').replace(/\(.*?\)/,'()');
 	if ((cheatText.indexOf("[]()") !== -1) || (cheatText.indexOf("[](\"\")") !== -1)) {
 		text = text.replace(new RegExp(
 			'('               + // wrap whole match in $1
