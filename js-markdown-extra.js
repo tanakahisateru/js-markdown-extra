@@ -1948,11 +1948,10 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
         //
         // Check for: Code span marker
         //
-	if (tag.charAt(0) == "`") {
+        if (tag.charAt(0) == "`") {
             // Find corresponding end marker.
             tag_re = this._php_preg_quote(tag);
-
-	    if (
+            if (
                 tag.substr(1).indexOf('`') != -1 && // [portiong note] To avoid JS's RegExp infinity loop.
                 (matches = text.match(new RegExp('^(.+?|\\n[^\\n])*?[^`]' + tag_re + '[^`]')))
             ) {
