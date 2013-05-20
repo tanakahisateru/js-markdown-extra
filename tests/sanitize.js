@@ -47,3 +47,16 @@ QUnit.test( "02 - Fenced code block", function() {
     var result = Markdown(input);
     QUnit.assert.equal(result, expected);
 });
+
+/**
+ * Test 03 - Inline code
+ */
+QUnit.test( "03 - Inline code", function() {
+    var input = "`<script></script>`" + "\n";
+
+    var expected = "<p><code>&lt;script&gt;&lt;/script&gt;</code></p>" + "\n";
+
+    var result = Markdown(input);
+    QUnit.assert.equal(result, expected);
+});
+

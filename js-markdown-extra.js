@@ -1952,7 +1952,7 @@ MarkdownExtra_Parser.prototype._hashHTMLBlocks_inMarkdown = function(text, inden
             // Find corresponding end marker.
             tag_re = this._php_preg_quote(tag);
             if (
-                tag.substr(1).indexOf('`') != -1 && // [portiong note] To avoid JS's RegExp infinity loop.
+                text.substr(1).indexOf('`') != -1 && // [portiong note] To avoid JS's RegExp infinity loop.
                 (matches = text.match(new RegExp('^(.+?|\\n[^\\n])*?[^`]' + tag_re + '[^`]')))
             ) {
                 // End marker found: pass text unchanged until marker.
