@@ -2827,7 +2827,7 @@ MarkdownExtra_Parser.prototype.stripAbbreviations = function(text) {
     text = text.replace(new RegExp(
         '^[ ]{0,' + less_than_tab + '}\\*\\[(.+?)\\][ ]?:' + // abbr_id = $1
         '(.*)',   // text = $2 (no blank lines allowed)
-        "m"
+        "mg"
     ), function(match, abbr_word, abbr_desc) {
         if (self.abbr_word_re != '') {
             self.abbr_word_re += '|';
@@ -2852,6 +2852,7 @@ MarkdownExtra_Parser.prototype.doAbbreviations = function(text) {
             '(^|[^\\w\\x1A])'             +
             '(' + this.abbr_word_re + ')' +
             '(?![\\w\\x1A])'
+            , 'g'
         ), function(match, prev, abbr) {
             if (abbr in self.abbr_desciptions) {
                 var desc = self.abbr_desciptions[abbr];
