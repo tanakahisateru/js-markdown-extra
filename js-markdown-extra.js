@@ -2873,7 +2873,8 @@ MarkdownExtra_Parser.prototype.doAbbreviations = function(text) {
 /**
  * Export to Node.js
  */
-this.Markdown = Markdown;
-this.Markdown_Parser = Markdown_Parser;
-this.MarkdownExtra_Parser = MarkdownExtra_Parser;
-
+if (typeof exports != 'undefined') {
+    exports.Markdown = Markdown;
+    exports.Markdown_Parser = Markdown_Parser;
+    exports.MarkdownExtra_Parser = MarkdownExtra_Parser;
+}
