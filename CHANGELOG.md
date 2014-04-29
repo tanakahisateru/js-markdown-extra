@@ -1,3 +1,9 @@
+#### 1.2.4 - 2013-04-30
+
+  * Inline HTML bug fixed. #36
+  * Nested brackets completely unsupported. #35
+  * Several abbreviation bugs fixed. #33 #37
+
 #### 1.2.3 - 2013-03-08
 
   * Incompleted string/itaric bug fixed. #24
