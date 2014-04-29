@@ -149,12 +149,18 @@ Markdown_Parser.prototype.init = function() {
     //    str_repeat('(?>[^()\\s]+|\\(', this.nested_url_parenthesis_depth) +
     //    str_repeat('(?>\\)))*', this.nested_url_parenthesis_depth)
     //);
-    this.nested_brackets_re =
-        this._php_str_repeat('(?:[^\\[\\]]+|\\[', this.nested_brackets_depth) +
-        this._php_str_repeat('\\])*', this.nested_brackets_depth);
-    this.nested_url_parenthesis_re =
-        this._php_str_repeat('(?:[^\\(\\)\\s]+|\\(', this.nested_url_parenthesis_depth) +
-        this._php_str_repeat('(?:\\)))*', this.nested_url_parenthesis_depth);
+
+    // NOTE: Below codes are hopelessly slow.
+    //this.nested_brackets_re =
+    //    this._php_str_repeat('(?:[^\\[\\]]+|\\[', this.nested_brackets_depth) +
+    //    this._php_str_repeat('\\])*', this.nested_brackets_depth);
+    //this.nested_url_parenthesis_re =
+    //    this._php_str_repeat('(?:[^\\(\\)\\s]+|\\(', this.nested_url_parenthesis_depth) +
+    //    this._php_str_repeat('(?:\\)))*', this.nested_url_parenthesis_depth);
+
+    // So, instead:
+    this.nested_brackets_re = '(?:[^\\]]*?)';
+    this.nested_url_parenthesis_re = '(?:[^\\)\\s]*?)';
 
     // Table of hash values for escaped characters:
     var tmp = [];
