@@ -1563,9 +1563,9 @@ Markdown_Parser.prototype.parseSpan = function(str) {
                 '<\\?.*?\\?>|<%.*?%>'    + // processing instruction
             '|'                          +
                 '<[/!$]?[-a-zA-Z0-9:_]+' + // regular tags
-                '(?='                    +
+                '(?:'                    +
                     '\\s'                +
-                    '(?=[^"\'>]+|"[^"]*"|\'[^\']*\')*' +
+                    '(?:[^"\'>]+|"[^"]*"|\'[^\']*\')*' +
                 ')?'                     +
                 '>'
         )) +
