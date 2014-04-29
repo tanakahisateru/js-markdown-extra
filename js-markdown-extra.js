@@ -2856,10 +2856,10 @@ MarkdownExtra_Parser.prototype.doAbbreviations = function(text) {
             if (abbr in self.abbr_desciptions) {
                 var desc = self.abbr_desciptions[abbr];
                 if (!desc || desc == "") {
-                    return self.hashPart("<abbr>" + abbr + "</abbr>");
+                    return self.hashPart(prev + "<abbr>" + abbr + "</abbr>");
                 } else {
                     desc = self.encodeAttribute(desc);
-                    return self.hashPart("<abbr title=\"" + desc + "\">" + abbr + "</abbr>");
+                    return self.hashPart(prev + "<abbr title=\"" + desc + "\">" + abbr + "</abbr>");
                 }
             } else {
                 return match;
