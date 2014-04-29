@@ -23,7 +23,7 @@ You can try in your hand.
 
 ### How to use ###
 
-Load this script in HTML and call ```Markdown``` function.
+Load this script in HTML and call `Markdown` function.
 
 ```javascript
 	//example :
@@ -34,14 +34,12 @@ Load this script in HTML and call ```Markdown``` function.
 
 It has possibility of entering infinite loop by some user input because
 I try to port PHP Markdown Extra with incompatible regular expression test.
-Please stand by to kill your browser process. **I prefer to use it
-under dual core CPU.**
 
 ### Known issues ###
 
 * Emphasis or strong syntax may have a bug.
 * Possible to freeze when incomplete syntax.
-* Bracket nesting more than twice for link is unsupported. (is as standard spec)
+* Bracket nesting is unsupported.
 
 ### Copyright ###
 
