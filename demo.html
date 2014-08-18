@@ -10,7 +10,7 @@
 
     <title>js-markdown-extra</title>
 
-    <script src="https://raw.github.com/tanakahisateru/js-markdown-extra/master/js-markdown-extra.js"></script>
+    <script src="./javascripts/js-markdown-extra.js"></script>
     <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
 
     <style>
@@ -72,26 +72,26 @@ Syntax Cheatsheet
 ========================================
 PHRASE EMPHASIS
 ---------------
-*italic*   **bold**  
+*italic*   **bold**
 _italic_   __bold__
 
 LINKS
 ---------------
-Inline:  
+Inline:
 An [example](http://url.com/ "Title")
 
-Reference-style labels (titles are optional):  
-An [example][id] or [id]. Then, anywhere  
+Reference-style labels (titles are optional):
+An [example][id] or [id]. Then, anywhere
 else in the doc, define the link:
 
   [id]: http://example.com/  "Title"
 
 IMAGES
 ---------------
-Inline (titles are optional):  
+Inline (titles are optional):
 ![alt text](images/blacktocat.png "Title")
 
-Reference-style:  
+Reference-style:
 ![alt text][imgid]
 
   [imgid]: images/blacktocat.png "Title"
@@ -147,7 +147,7 @@ BLOCKQUOTES
 > > And, they can be nested.
 
 > #### Headers in blockquotes
-> 
+>
 > * You can quote a list.
 > * Etc.
 
@@ -190,7 +190,7 @@ MANUAL LINE BREAKS
 ---------------
 End a line with two or more spaces:
 
-Roses are red,   
+Roses are red,
 Violets are blue.
 
 - - - - - - - - - - - - - - - - - - - -
@@ -243,7 +243,7 @@ term
 Auto link
 -----------------
 
-&lt;http://foo.com/>  
+&lt;http://foo.com/>
 &lt;mailto:foo@bar.com>
 
 Encode
@@ -265,7 +265,7 @@ Regularly Markdown syntax ignored in HTML.&lt;br/>
 &lt;/div>
 
 &lt;div markdown="1">
-Markdow enabled inside HTML when marked by markdown="1" attribute.  
+Markdow enabled inside HTML when marked by markdown="1" attribute.
 [Google](http://www.google.co.jp/)
 &lt;/div>
 
@@ -280,7 +280,7 @@ Markdow enabled inside HTML when marked by markdown="1" attribute.
     <pre id="result-src">
     </pre>
   </div>
-  
+
   <div style="clear:both;">Type your md-text into the textarea above.</div>
 
       </section>
