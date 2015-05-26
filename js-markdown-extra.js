@@ -1702,6 +1702,8 @@ function MarkdownExtra_Parser() {
     // Give the current footnote number.
     this.footnote_counter = 1;
 
+    this.footnote_map = {};
+
     // ### HTML Block Parser ###
 
     // Tags that are always treated as block tags:
@@ -2736,6 +2738,10 @@ MarkdownExtra_Parser.prototype.appendFootnotes = function(text) {
     var _appendFootnotes_callback = function(match, m1) {
         var node_id = self.fn_id_prefix + m1;
 
+        if(node_id in self.footnote_map) {
+            return self.footnote_map[node_id].note.replace(node_id, node_id +'.' + (++self.footnote_map[node_id].counter));
+        }
+
         // Create footnote marker only if it has a corresponding footnote *and*
         // the footnote hasn't been used by another marker.
         if (node_id in self.footnotes) {
@@ -2758,10 +2764,13 @@ MarkdownExtra_Parser.prototype.appendFootnotes = function(text) {
 
             attr = attr.replace(/%%/g, num);
             node_id = self.encodeAttribute(node_id);
-
-            return "<sup id=\"fnref:" + node_id + "\">" +
-                "<a href=\"#fn:" + node_id + "\"" + attr + ">" + num + "</a>" +
-                "</sup>";
+            var note = "<sup id=\"fnref:" + node_id + "\">" +
+            "<a href=\"#fn:" + node_id + "\"" + attr + ">" + num + "</a>" +
+            "</sup>";
+            self.footnote_map[node_id] = {};
+            self.footnote_map[node_id].note = note;
+            self.footnote_map[node_id].counter = 0;
+            return note;
         }
 
         return "[^" + m1 + "]";
@@ -2802,6 +2811,11 @@ MarkdownExtra_Parser.prototype.appendFootnotes = function(text) {
 
             // Add backlink to last paragraph; create new paragraph if needed.
             var backlink = "<a href=\"#fnref:" + note_id + "\"" + attr + ">&#8617;</a>";
+            if(note_id in self.footnote_map) {
+                for(var i = 1; i <= self.footnote_map[note_id].counter; i++) {
+                    backlink+=" <a href=\"#fnref:" + note_id + '.'+ i + "\"" + attr + ">&#8617;</a>";
+                }
+            }
             if (footnote.match(/<\/p>$/)) {
                 footnote = footnote.substr(0, footnote.length - 4) + "&#160;" + backlink + "</p>";
             } else {
